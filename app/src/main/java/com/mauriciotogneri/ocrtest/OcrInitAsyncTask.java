@@ -44,7 +44,6 @@ final class OcrInitAsyncTask extends AsyncTask<String, String, Boolean>
     private ProgressDialog dialog;
     private ProgressDialog indeterminateDialog;
     private final String languageCode;
-    private String languageName;
     private int ocrEngineMode;
 
     /**
@@ -55,11 +54,10 @@ final class OcrInitAsyncTask extends AsyncTask<String, String, Boolean>
      * @param dialog              Dialog box with thermometer progress indicator
      * @param indeterminateDialog Dialog box with indeterminate progress indicator
      * @param languageCode        ISO 639-2 OCR language code
-     * @param languageName        Name of the OCR language, for example, "English"
      * @param ocrEngineMode       Whether to use Tesseract, Cube, or both
      */
     OcrInitAsyncTask(CaptureActivity activity, TessBaseAPI baseApi, ProgressDialog dialog,
-                     ProgressDialog indeterminateDialog, String languageCode, String languageName,
+                     ProgressDialog indeterminateDialog, String languageCode,
                      int ocrEngineMode)
     {
         this.activity = activity;
@@ -68,7 +66,6 @@ final class OcrInitAsyncTask extends AsyncTask<String, String, Boolean>
         this.dialog = dialog;
         this.indeterminateDialog = indeterminateDialog;
         this.languageCode = languageCode;
-        this.languageName = languageName;
         this.ocrEngineMode = ocrEngineMode;
     }
 
@@ -234,7 +231,7 @@ final class OcrInitAsyncTask extends AsyncTask<String, String, Boolean>
             FileNotFoundException
     {
         // Attempt to open the zip archive
-        publishProgress("Uncompressing data for " + languageName + "...", "0");
+        publishProgress("Uncompressing data for " + languageCode + "...", "0");
         ZipInputStream inputStream = new ZipInputStream(context.getAssets().open(sourceFilename));
 
         // Loop through all the files and folders in the zip archive (but there should just be one)
@@ -269,10 +266,10 @@ final class OcrInitAsyncTask extends AsyncTask<String, String, Boolean>
                 {
                     bufferedOutputStream.write(data, 0, count);
                     unzippedSize += count;
-                    percentComplete = (int) ((unzippedSize / (long) zippedFileSize) * 100);
+                    percentComplete = (int) ((unzippedSize / zippedFileSize) * 100);
                     if (percentComplete > percentCompleteLast)
                     {
-                        publishProgress("Uncompressing data for " + languageName + "...",
+                        publishProgress("Uncompressing data for " + languageCode + "...",
                                         percentComplete.toString(), "0");
                         percentCompleteLast = percentComplete;
                     }

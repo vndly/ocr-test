@@ -43,67 +43,9 @@ import com.mauriciotogneri.ocrtest.camera.CameraManager;
 import java.io.File;
 import java.io.IOException;
 
+// https://github.com/rmtheis/android-ocr
 public final class CaptureActivity extends AppCompatActivity implements SurfaceHolder.Callback
 {
-    /**
-     * ISO 639-3 language code indicating the default recognition language.
-     */
-    public static final String DEFAULT_SOURCE_LANGUAGE_CODE = "eng";
-
-    /**
-     * The default OCR engine to use.
-     */
-    public static final String DEFAULT_OCR_ENGINE_MODE = "Tesseract";
-
-    /**
-     * The default page segmentation mode to use.
-     */
-    public static final String DEFAULT_PAGE_SEGMENTATION_MODE = "Auto";
-
-    /**
-     * Whether to use autofocus by default.
-     */
-    public static final boolean DEFAULT_TOGGLE_AUTO_FOCUS = true;
-
-    /**
-     * Whether to initially disable continuous-picture and continuous-video focus modes.
-     */
-    public static final boolean DEFAULT_DISABLE_CONTINUOUS_FOCUS = true;
-
-    /**
-     * Whether to initially show a looping, real-time OCR display.
-     */
-    public static final boolean DEFAULT_TOGGLE_CONTINUOUS = true;
-
-    /**
-     * Whether to initially reverse the image returned by the camera.
-     */
-    public static final boolean DEFAULT_TOGGLE_REVERSED_IMAGE = false;
-
-    /**
-     * Whether to enable the use of online translation services be default.
-     */
-    public static final boolean DEFAULT_TOGGLE_TRANSLATION = false;
-
-    /**
-     * Whether the light should be initially activated by default.
-     */
-    public static final boolean DEFAULT_TOGGLE_LIGHT = false;
-
-    /**
-     * Flag to display the real-time recognition results at the top of the scanning screen.
-     */
-    private static final boolean CONTINUOUS_DISPLAY_RECOGNIZED_TEXT = true;
-
-    /**
-     * Flag to display recognition-related statistics on the scanning screen.
-     */
-    private static final boolean CONTINUOUS_DISPLAY_METADATA = true;
-
-
-    // Context menu
-    private static final int SETTINGS_ID = Menu.FIRST;
-
     // Options menu, for copy to clipboard
     private static final int OPTIONS_COPY_RECOGNIZED_TEXT_ID = Menu.FIRST;
     private static final int OPTIONS_COPY_TRANSLATED_TEXT_ID = Menu.FIRST + 1;
@@ -126,30 +68,31 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
     private Bitmap lastBitmap;
     private boolean hasSurface;
     private TessBaseAPI baseApi; // Java interface for the Tesseract OCR engine
-    private String sourceLanguageCodeOcr; // ISO 639-3 language code
-    private String sourceLanguageReadable; // Language name, for example, "English"
-    private int pageSegmentationMode = TessBaseAPI.PageSegMode.PSM_AUTO_OSD;
-    private final int ocrEngineMode = TessBaseAPI.OEM_TESSERACT_ONLY;
-    private String characterBlacklist;
-    private String characterWhitelist;
+
+    private final String sourceLanguageCodeOcr = Configuration.DEFAULT_SOURCE_LANGUAGE_CODE;
+    private final int pageSegmentationMode = Configuration.DEFAULT_PAGE_SEGMENTATION_MODE;
+    private final int ocrEngineMode = Configuration.DEFAULT_OCR_ENGINE_MODE;
+    private final String characterBlacklist = Configuration.DEFAULT_BLACKLIST;
+    private final String characterWhitelist = Configuration.DEFAULT_WHITELIST;
+    private final boolean isContinuousModeActive = Configuration.DEFAULT_TOGGLE_CONTINUOUS;
+
     private Button shutterButton;
-    private boolean isContinuousModeActive; // Whether we are doing OCR in continuous mode
     private ProgressDialog dialog; // for initOcr - language download & unzip
     private ProgressDialog indeterminateDialog; // also for initOcr - init OCR engine
     private boolean isEngineReady;
     private boolean isPaused;
 
-    Handler getHandler()
+    public Handler getHandler()
     {
         return handler;
     }
 
-    TessBaseAPI getBaseApi()
+    public TessBaseAPI getBaseApi()
     {
         return baseApi;
     }
 
-    CameraManager getCameraManager()
+    public CameraManager getCameraManager()
     {
         return cameraManager;
     }
@@ -337,8 +280,6 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
         String previousSourceLanguageCodeOcr = sourceLanguageCodeOcr;
         int previousOcrEngineMode = ocrEngineMode;
 
-        retrievePreferences();
-
         // Set up the camera preview surface.
         surfaceView = (SurfaceView) findViewById(R.id.preview_view);
         surfaceHolder = surfaceView.getHolder();
@@ -359,7 +300,7 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
             File storageDirectory = getStorageDirectory();
             if (storageDirectory != null)
             {
-                initOcrEngine(storageDirectory, sourceLanguageCodeOcr, sourceLanguageReadable);
+                initOcrEngine(storageDirectory, sourceLanguageCodeOcr);
             }
         }
         else
@@ -585,32 +526,6 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
         return super.onKeyDown(keyCode, event);
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu)
-    {
-        //    MenuInflater inflater = getMenuInflater();
-        //    inflater.inflate(R.menu.options_menu, menu);
-        super.onCreateOptionsMenu(menu);
-        menu.add(0, SETTINGS_ID, 0, "Settings").setIcon(android.R.drawable.ic_menu_preferences);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item)
-    {
-        Intent intent;
-        switch (item.getItemId())
-        {
-            case SETTINGS_ID:
-            {
-                intent = new Intent().setClass(this, PreferencesActivity.class);
-                startActivity(intent);
-                break;
-            }
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
     public void surfaceDestroyed(SurfaceHolder holder)
     {
         hasSurface = false;
@@ -621,22 +536,10 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
     }
 
     /**
-     * Sets the necessary language code values for the given OCR language.
-     */
-    private boolean setSourceLanguage(String languageCode)
-    {
-        sourceLanguageCodeOcr = languageCode;
-        sourceLanguageReadable = DEFAULT_SOURCE_LANGUAGE_CODE;
-        return true;
-    }
-
-    /**
      * Finds the proper location on the SD card where we can save files.
      */
     private File getStorageDirectory()
     {
-        //Log.d(getClass().getName(), "getStorageDirectory(): API level is " + Integer.valueOf(android.os.Build.VERSION.SDK_INT));
-
         String state = null;
         try
         {
@@ -683,14 +586,7 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
         return null;
     }
 
-    /**
-     * Requests initialization of the OCR engine with the given parameters.
-     *
-     * @param storageRoot  Path to location of the tessdata directory to use
-     * @param languageCode Three-letter ISO 639-3 language code for OCR
-     * @param languageName Name of the language for OCR, for example, "English"
-     */
-    private void initOcrEngine(File storageRoot, String languageCode, String languageName)
+    private void initOcrEngine(File storageRoot, String languageCode)
     {
         isEngineReady = false;
 
@@ -704,15 +600,7 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
         // Display the name of the OCR engine we're initializing in the indeterminate progress dialog box
         indeterminateDialog = new ProgressDialog(this);
         indeterminateDialog.setTitle("Please wait");
-        String ocrEngineModeName = getOcrEngineModeName();
-        if (ocrEngineModeName.equals("Both"))
-        {
-            indeterminateDialog.setMessage("Initializing Cube and Tesseract OCR engines for " + languageName + "...");
-        }
-        else
-        {
-            indeterminateDialog.setMessage("Initializing " + ocrEngineModeName + " OCR engine for " + languageName + "...");
-        }
+        indeterminateDialog.setMessage("Initializing OCR engine for " + languageCode + "...");
         indeterminateDialog.setCancelable(false);
         indeterminateDialog.show();
 
@@ -723,16 +611,15 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
 
         // Disable continuous mode if we're using Cube. This will prevent bad states for devices
         // with low memory that crash when running OCR with Cube, and prevent unwanted delays.
-//        if (ocrEngineMode == TessBaseAPI.OEM_CUBE_ONLY || ocrEngineMode == TessBaseAPI.OEM_TESSERACT_CUBE_COMBINED)
-//        {
-//            Log.d(getClass().getName(), "Disabling continuous preview");
-//            isContinuousModeActive = false;
-//        }
+        //        if (ocrEngineMode == TessBaseAPI.OEM_CUBE_ONLY || ocrEngineMode == TessBaseAPI.OEM_TESSERACT_CUBE_COMBINED)
+        //        {
+        //            Log.d(getClass().getName(), "Disabling continuous preview");
+        //            isContinuousModeActive = false;
+        //        }
 
         // Start AsyncTask to install language data and init OCR
         baseApi = new TessBaseAPI();
-        new OcrInitAsyncTask(this, baseApi, dialog, indeterminateDialog, languageCode, languageName, ocrEngineMode)
-                .execute(storageRoot.toString());
+        new OcrInitAsyncTask(this, baseApi, dialog, indeterminateDialog, languageCode, ocrEngineMode).execute(storageRoot.toString());
     }
 
     /**
@@ -775,7 +662,7 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
 
         // Display the recognized text
         TextView sourceLanguageTextView = (TextView) findViewById(R.id.source_language_text_view);
-        sourceLanguageTextView.setText(sourceLanguageReadable);
+        sourceLanguageTextView.setText(sourceLanguageCodeOcr);
         TextView ocrResultTextView = (TextView) findViewById(R.id.ocr_result_text_view);
         ocrResultTextView.setText(ocrResult.getText());
         // Crudely scale betweeen 22 and 32 -- bigger font for shorter text
@@ -818,7 +705,7 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
 
         Integer meanConfidence = ocrResult.getMeanConfidence();
 
-        if (CONTINUOUS_DISPLAY_RECOGNIZED_TEXT)
+        if (Configuration.CONTINUOUS_DISPLAY_RECOGNIZED_TEXT)
         {
             // Display the recognized text on the screen
             statusViewTop.setText(ocrResult.getText());
@@ -830,12 +717,12 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
             statusViewTop.getBackground().setAlpha(meanConfidence * (255 / 100));
         }
 
-        if (CONTINUOUS_DISPLAY_METADATA)
+        if (Configuration.CONTINUOUS_DISPLAY_METADATA)
         {
             // Display recognition-related metadata at the bottom of the screen
             long recognitionTimeRequired = ocrResult.getRecognitionTimeRequired();
             statusViewBottom.setTextSize(14);
-            statusViewBottom.setText("OCR: " + sourceLanguageReadable + " - Mean confidence: " +
+            statusViewBottom.setText("OCR: " + sourceLanguageCodeOcr + " - Mean confidence: " +
                                              meanConfidence.toString() + " - Time required: " + recognitionTimeRequired + " ms");
         }
     }
@@ -853,11 +740,11 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
         // Reset the text in the recognized text box.
         statusViewTop.setText("");
 
-        if (CONTINUOUS_DISPLAY_METADATA)
+        if (Configuration.CONTINUOUS_DISPLAY_METADATA)
         {
             // Color text delimited by '-' as red.
             statusViewBottom.setTextSize(14);
-            CharSequence cs = setSpanBetweenTokens("OCR: " + sourceLanguageReadable + " - OCR failed - Time required: "
+            CharSequence cs = setSpanBetweenTokens("OCR: " + sourceLanguageCodeOcr + " - OCR failed - Time required: "
                                                            + obj.getTimeRequired() + " ms", "-", new ForegroundColorSpan(0xFFFF0000));
             statusViewBottom.setText(cs);
         }
@@ -961,14 +848,14 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
     private void resetStatusView()
     {
         resultView.setVisibility(View.GONE);
-        if (CONTINUOUS_DISPLAY_METADATA)
+        if (Configuration.CONTINUOUS_DISPLAY_METADATA)
         {
             statusViewBottom.setText("");
             statusViewBottom.setTextSize(14);
             statusViewBottom.setTextColor(getResources().getColor(R.color.status_text));
             statusViewBottom.setVisibility(View.VISIBLE);
         }
-        if (CONTINUOUS_DISPLAY_RECOGNIZED_TEXT)
+        if (Configuration.CONTINUOUS_DISPLAY_RECOGNIZED_TEXT)
         {
             statusViewTop.setText("");
             statusViewTop.setTextSize(14);
@@ -988,9 +875,9 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
     void setStatusViewForContinuous()
     {
         viewfinderView.removeResultText();
-        if (CONTINUOUS_DISPLAY_METADATA)
+        if (Configuration.CONTINUOUS_DISPLAY_METADATA)
         {
-            statusViewBottom.setText("OCR: " + sourceLanguageReadable + " - waiting for OCR...");
+            statusViewBottom.setText("OCR: " + sourceLanguageCodeOcr + " - waiting for OCR...");
         }
     }
 
@@ -1037,129 +924,21 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
         cameraManager.requestAutoFocus(350L);
     }
 
-    /**
-     * Returns a string that represents which OCR engine(s) are currently set to be run.
-     *
-     * @return OCR engine mode
-     */
-    String getOcrEngineModeName()
+    public void displayProgressDialog()
     {
-        String ocrEngineModeName = "";
-        String[] ocrEngineModes = new String[] {"Tesseract", "Cube", "Both"};
-        if (ocrEngineMode == TessBaseAPI.OEM_TESSERACT_ONLY)
-        {
-            ocrEngineModeName = ocrEngineModes[0];
-        }
-        else if (ocrEngineMode == TessBaseAPI.OEM_CUBE_ONLY)
-        {
-            ocrEngineModeName = ocrEngineModes[1];
-        }
-        else if (ocrEngineMode == TessBaseAPI.OEM_TESSERACT_CUBE_COMBINED)
-        {
-            ocrEngineModeName = ocrEngineModes[2];
-        }
-        return ocrEngineModeName;
-    }
-
-    private void retrievePreferences()
-    {
-        // Retrieve from preferences, and set in this Activity, the language preferences
-        setSourceLanguage(CaptureActivity.DEFAULT_SOURCE_LANGUAGE_CODE);
-
-        // Retrieve from preferences, and set in this Activity, the capture mode preference
-        isContinuousModeActive = CaptureActivity.DEFAULT_TOGGLE_CONTINUOUS;
-
-        // Retrieve from preferences, and set in this Activity, the page segmentation mode preference
-        String[] pageSegmentationModes = new String[] {"Auto"};//getResources().getStringArray(R.array.pagesegmentationmodes);
-        String pageSegmentationModeName = pageSegmentationModes[0];
-        if (pageSegmentationModeName.equals(pageSegmentationModes[0]))
-        {
-            pageSegmentationMode = TessBaseAPI.PageSegMode.PSM_AUTO_OSD;
-        }
-        else if (pageSegmentationModeName.equals(pageSegmentationModes[1]))
-        {
-            pageSegmentationMode = TessBaseAPI.PageSegMode.PSM_AUTO;
-        }
-        else if (pageSegmentationModeName.equals(pageSegmentationModes[2]))
-        {
-            pageSegmentationMode = TessBaseAPI.PageSegMode.PSM_SINGLE_BLOCK;
-        }
-        else if (pageSegmentationModeName.equals(pageSegmentationModes[3]))
-        {
-            pageSegmentationMode = TessBaseAPI.PageSegMode.PSM_SINGLE_CHAR;
-        }
-        else if (pageSegmentationModeName.equals(pageSegmentationModes[4]))
-        {
-            pageSegmentationMode = TessBaseAPI.PageSegMode.PSM_SINGLE_COLUMN;
-        }
-        else if (pageSegmentationModeName.equals(pageSegmentationModes[5]))
-        {
-            pageSegmentationMode = TessBaseAPI.PageSegMode.PSM_SINGLE_LINE;
-        }
-        else if (pageSegmentationModeName.equals(pageSegmentationModes[6]))
-        {
-            pageSegmentationMode = TessBaseAPI.PageSegMode.PSM_SINGLE_WORD;
-        }
-        else if (pageSegmentationModeName.equals(pageSegmentationModes[7]))
-        {
-            pageSegmentationMode = TessBaseAPI.PageSegMode.PSM_SINGLE_BLOCK_VERT_TEXT;
-        }
-        else if (pageSegmentationModeName.equals(pageSegmentationModes[8]))
-        {
-            pageSegmentationMode = TessBaseAPI.PageSegMode.PSM_SPARSE_TEXT;
-        }
-
-        // Retrieve from preferences, and set in this Activity, the OCR engine mode
-        String[] ocrEngineModes = new String[] {"Tesseract", "Cube", "Both"};//getResources().getStringArray(R.array.ocrenginemodes);
-        String ocrEngineModeName = ocrEngineModes[0];
-        /*if (ocrEngineModeName.equals(ocrEngineModes[0]))
-        {
-            ocrEngineMode = TessBaseAPI.OEM_TESSERACT_ONLY;
-        }
-        else if (ocrEngineModeName.equals(ocrEngineModes[1]))
-        {
-            ocrEngineMode = TessBaseAPI.OEM_CUBE_ONLY;
-        }
-        else if (ocrEngineModeName.equals(ocrEngineModes[2]))
-        {
-            ocrEngineMode = TessBaseAPI.OEM_TESSERACT_CUBE_COMBINED;
-        }*/
-
-        // Retrieve from preferences, and set in this Activity, the character blacklist and whitelist
-        characterBlacklist = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmopqrstuvwxyz";
-        characterWhitelist = "0123456789";
-    }
-
-    void displayProgressDialog()
-    {
-        // Set up the indeterminate progress dialog box
         indeterminateDialog = new ProgressDialog(this);
         indeterminateDialog.setTitle("Please wait");
-        String ocrEngineModeName = getOcrEngineModeName();
-        if (ocrEngineModeName.equals("Both"))
-        {
-            indeterminateDialog.setMessage("Performing OCR using Cube and Tesseract...");
-        }
-        else
-        {
-            indeterminateDialog.setMessage("Performing OCR using " + ocrEngineModeName + "...");
-        }
+        indeterminateDialog.setMessage("Performing OCR...");
         indeterminateDialog.setCancelable(false);
         indeterminateDialog.show();
     }
 
-    ProgressDialog getProgressDialog()
+    public ProgressDialog getProgressDialog()
     {
         return indeterminateDialog;
     }
 
-    /**
-     * Displays an error message dialog box to the user on the UI thread.
-     *
-     * @param title   The title for the dialog box
-     * @param message The error message to be displayed
-     */
-    void showErrorMessage(String title, String message)
+    public void showErrorMessage(String title, String message)
     {
         new AlertDialog.Builder(this)
                 .setTitle(title)

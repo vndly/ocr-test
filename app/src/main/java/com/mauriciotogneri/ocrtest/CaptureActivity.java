@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package edu.sfsu.cs.orange.ocr;
+package com.mauriciotogneri.ocrtest;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -57,13 +57,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.googlecode.tesseract.android.TessBaseAPI;
+import com.mauriciotogneri.ocrtest.camera.CameraManager;
+import com.mauriciotogneri.ocrtest.camera.ShutterButton;
+import com.mauriciotogneri.ocrtest.language.LanguageCodeHelper;
 
 import java.io.File;
 import java.io.IOException;
-
-import edu.sfsu.cs.orange.ocr.camera.CameraManager;
-import edu.sfsu.cs.orange.ocr.camera.ShutterButton;
-import edu.sfsu.cs.orange.ocr.language.LanguageCodeHelper;
 
 /**
  * This activity opens the camera and does the actual scanning on a background thread. It draws a
@@ -755,14 +754,6 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
                 Log.e(TAG, "External storage is unavailable");
                 showErrorMessage("Error", "Required external storage (such as an SD card) is full or unavailable.");
             }
-
-            //        } else {
-            //          // For Android 2.1 and below, explicitly give the path as, for example,
-            //          // "/mnt/sdcard/Android/data/edu.sfsu.cs.orange.ocr/files/"
-            //          return new File(Environment.getExternalStorageDirectory().toString() + File.separator +
-            //                  "Android" + File.separator + "data" + File.separator + getPackageName() +
-            //                  File.separator + "files" + File.separator);
-            //        }
 
         }
         else if (Environment.MEDIA_MOUNTED_READ_ONLY.equals(state))

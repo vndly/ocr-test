@@ -2,8 +2,6 @@ package com.mauriciotogneri.ocrtest;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
-import android.content.Context;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -11,18 +9,13 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
-import android.text.ClipboardManager;
 import android.text.SpannableStringBuilder;
 import android.text.style.CharacterStyle;
 import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.util.TypedValue;
-import android.view.ContextMenu;
-import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Gravity;
 import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -44,12 +37,6 @@ import java.io.File;
 // https://github.com/rmtheis/android-ocr
 public final class CaptureActivity extends AppCompatActivity implements SurfaceHolder.Callback
 {
-    // Options menu, for copy to clipboard
-    private static final int OPTIONS_COPY_RECOGNIZED_TEXT_ID = Menu.FIRST;
-    private static final int OPTIONS_COPY_TRANSLATED_TEXT_ID = Menu.FIRST + 1;
-    private static final int OPTIONS_SHARE_RECOGNIZED_TEXT_ID = Menu.FIRST + 2;
-    private static final int OPTIONS_SHARE_TRANSLATED_TEXT_ID = Menu.FIRST + 3;
-
     private CameraManager cameraManager;
     private CaptureActivityHandler handler;
     private SurfaceView surfaceView;
@@ -663,65 +650,6 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
             text = ssb;
         }
         return text;
-    }
-
-    @Override
-    public void onCreateContextMenu(ContextMenu menu, View v,
-                                    ContextMenuInfo menuInfo)
-    {
-        super.onCreateContextMenu(menu, v, menuInfo);
-        if (v.equals(ocrResultView))
-        {
-            menu.add(Menu.NONE, OPTIONS_COPY_RECOGNIZED_TEXT_ID, Menu.NONE, "Copy recognized text");
-            menu.add(Menu.NONE, OPTIONS_SHARE_RECOGNIZED_TEXT_ID, Menu.NONE, "Share recognized text");
-        }
-        else if (v.equals(translationView))
-        {
-            menu.add(Menu.NONE, OPTIONS_COPY_TRANSLATED_TEXT_ID, Menu.NONE, "Copy translated text");
-            menu.add(Menu.NONE, OPTIONS_SHARE_TRANSLATED_TEXT_ID, Menu.NONE, "Share translated text");
-        }
-    }
-
-    @Override
-    public boolean onContextItemSelected(MenuItem item)
-    {
-        ClipboardManager clipboardManager = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-        switch (item.getItemId())
-        {
-
-            case OPTIONS_COPY_RECOGNIZED_TEXT_ID:
-                clipboardManager.setText(ocrResultView.getText());
-                if (clipboardManager.hasText())
-                {
-                    Toast toast = Toast.makeText(this, "Text copied.", Toast.LENGTH_LONG);
-                    toast.setGravity(Gravity.BOTTOM, 0, 0);
-                    toast.show();
-                }
-                return true;
-            case OPTIONS_SHARE_RECOGNIZED_TEXT_ID:
-                Intent shareRecognizedTextIntent = new Intent(android.content.Intent.ACTION_SEND);
-                shareRecognizedTextIntent.setType("text/plain");
-                shareRecognizedTextIntent.putExtra(android.content.Intent.EXTRA_TEXT, ocrResultView.getText());
-                startActivity(Intent.createChooser(shareRecognizedTextIntent, "Share via"));
-                return true;
-            case OPTIONS_COPY_TRANSLATED_TEXT_ID:
-                clipboardManager.setText(translationView.getText());
-                if (clipboardManager.hasText())
-                {
-                    Toast toast = Toast.makeText(this, "Text copied.", Toast.LENGTH_LONG);
-                    toast.setGravity(Gravity.BOTTOM, 0, 0);
-                    toast.show();
-                }
-                return true;
-            case OPTIONS_SHARE_TRANSLATED_TEXT_ID:
-                Intent shareTranslatedTextIntent = new Intent(android.content.Intent.ACTION_SEND);
-                shareTranslatedTextIntent.setType("text/plain");
-                shareTranslatedTextIntent.putExtra(android.content.Intent.EXTRA_TEXT, translationView.getText());
-                startActivity(Intent.createChooser(shareTranslatedTextIntent, "Share via"));
-                return true;
-            default:
-                return super.onContextItemSelected(item);
-        }
     }
 
     /**

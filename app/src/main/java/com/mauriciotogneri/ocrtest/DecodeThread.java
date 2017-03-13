@@ -8,31 +8,31 @@ import java.util.concurrent.CountDownLatch;
 /**
  * This thread does all the heavy lifting of decoding the images.
  * <p>
- * The code for this class was adapted from the ZXing project: http://code.google.com/p/zxing
+ * The code for this class was adapted from the ZXing project: https://github.com/zxing/zxing
  */
-final class DecodeThread extends Thread
+public class DecodeThread extends Thread
 {
-
     private final CaptureActivity activity;
     private Handler handler;
     private final CountDownLatch handlerInitLatch;
 
-    DecodeThread(CaptureActivity activity)
+    public DecodeThread(CaptureActivity activity)
     {
         this.activity = activity;
-        handlerInitLatch = new CountDownLatch(1);
+        this.handlerInitLatch = new CountDownLatch(1);
     }
 
-    Handler getHandler()
+    public Handler getHandler()
     {
         try
         {
             handlerInitLatch.await();
         }
-        catch (InterruptedException ie)
+        catch (Exception e)
         {
-            // continue?
+            // ignore
         }
+
         return handler;
     }
 

@@ -4,7 +4,6 @@ import android.graphics.Bitmap;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.util.Log;
 
 import com.googlecode.leptonica.android.Pixa;
 import com.googlecode.leptonica.android.ReadFile;
@@ -13,11 +12,10 @@ import com.googlecode.tesseract.android.TessBaseAPI;
 /**
  * Class to send bitmap data for OCR.
  * <p>
- * The code for this class was adapted from the ZXing project: http://code.google.com/p/zxing/
+ * The code for this class was adapted from the ZXing project: https://github.com/zxing/zxing
  */
-final class DecodeHandler extends Handler
+public class DecodeHandler extends Handler
 {
-
     private final CaptureActivity activity;
     private boolean running = true;
     private final TessBaseAPI baseApi;
@@ -25,10 +23,10 @@ final class DecodeHandler extends Handler
     private static boolean isDecodePending;
     private long timeRequired;
 
-    DecodeHandler(CaptureActivity activity)
+    public DecodeHandler(CaptureActivity activity)
     {
         this.activity = activity;
-        baseApi = activity.getBaseApi();
+        this.baseApi = activity.getBaseApi();
     }
 
     @Override
@@ -38,6 +36,7 @@ final class DecodeHandler extends Handler
         {
             return;
         }
+
         switch (message.what)
         {
             case R.id.ocr_continuous_decode:
@@ -48,9 +47,11 @@ final class DecodeHandler extends Handler
                     ocrContinuousDecode((byte[]) message.obj, message.arg1, message.arg2);
                 }
                 break;
+
             case R.id.ocr_decode:
                 ocrDecode((byte[]) message.obj, message.arg1, message.arg2);
                 break;
+
             case R.id.quit:
                 running = false;
                 Looper.myLooper().quit();
@@ -58,7 +59,7 @@ final class DecodeHandler extends Handler
         }
     }
 
-    static void resetDecodeState()
+    public static void resetDecodeState()
     {
         isDecodePending = false;
     }
@@ -78,25 +79,21 @@ final class DecodeHandler extends Handler
         new OcrRecognizeAsyncTask(activity, baseApi, data, width, height).execute();
     }
 
-    /**
-     * Perform an OCR decode for realtime recognition mode.
-     *
-     * @param data   Image data
-     * @param width  Image width
-     * @param height Image height
-     */
     private void ocrContinuousDecode(byte[] data, int width, int height)
     {
         PlanarYUVLuminanceSource source = activity.getCameraManager().buildLuminanceSource(data, width, height);
+
         if (source == null)
         {
             sendContinuousOcrFailMessage();
             return;
         }
+
         bitmap = source.renderCroppedGreyscaleBitmap();
 
         OcrResult ocrResult = getOcrResult();
         Handler handler = activity.getHandler();
+
         if (handler == null)
         {
             return;
@@ -117,6 +114,7 @@ final class DecodeHandler extends Handler
                 bitmap.recycle();
                 baseApi.clear();
             }
+
             return;
         }
 
@@ -153,6 +151,7 @@ final class DecodeHandler extends Handler
             {
                 return null;
             }
+
             ocrResult = new OcrResult();
             ocrResult.setWordConfidences(baseApi.wordConfidences());
             ocrResult.setMeanConfidence(baseApi.meanConfidence());
@@ -163,53 +162,40 @@ final class DecodeHandler extends Handler
             Pixa words = baseApi.getWords();
             ocrResult.setWordBoundingBoxes(words.getBoxRects());
             words.recycle();
-
-            //      if (ViewfinderView.DRAW_CHARACTER_BOXES || ViewfinderView.DRAW_CHARACTER_TEXT) {
-            //        ocrResult.setCharacterBoundingBoxes(baseApi.getCharacters().getBoxRects());
-            //      }
         }
         catch (RuntimeException e)
         {
-            Log.e("OcrRecognizeAsyncTask", "Caught RuntimeException in request to Tesseract. Setting state to CONTINUOUS_STOPPED.");
             e.printStackTrace();
+
             try
             {
                 baseApi.clear();
                 activity.stopHandler();
             }
-            catch (NullPointerException e1)
+            catch (Exception e1)
             {
-                // Continue
+                // continue
             }
+
             return null;
         }
+
         timeRequired = System.currentTimeMillis() - start;
         ocrResult.setBitmap(bitmap);
         ocrResult.setText(textResult);
         ocrResult.setRecognitionTimeRequired(timeRequired);
+
         return ocrResult;
     }
 
     private void sendContinuousOcrFailMessage()
     {
         Handler handler = activity.getHandler();
+
         if (handler != null)
         {
             Message message = Message.obtain(handler, R.id.ocr_continuous_decode_failed, new OcrResultFailure(timeRequired));
             message.sendToTarget();
         }
     }
-
 }
-
-
-
-
-
-
-
-
-
-
-
-

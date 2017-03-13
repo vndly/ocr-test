@@ -10,7 +10,7 @@ import android.graphics.Bitmap;
  * It works for any pixel format where the Y channel is planar and appears first, including
  * YCbCr_420_SP and YCbCr_422_SP.
  * <p>
- * The code for this class was adapted from the ZXing project: http://code.google.com/p/zxing
+ * The code for this class was adapted from the ZXing project: https://github.com/zxing/zxing
  */
 public final class PlanarYUVLuminanceSource
 {

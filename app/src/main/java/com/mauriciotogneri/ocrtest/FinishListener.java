@@ -1,21 +1,18 @@
 package com.mauriciotogneri.ocrtest;
 
-
 import android.app.Activity;
 import android.content.DialogInterface;
 
 /**
  * Simple listener used to exit the app in a few cases.
  * <p>
- * The code for this class was adapted from the ZXing project: http://code.google.com/p/zxing
+ * The code for this class was adapted from the ZXing project: https://github.com/zxing/zxing
  */
-final class FinishListener
-        implements DialogInterface.OnClickListener, DialogInterface.OnCancelListener, Runnable
+public class FinishListener implements DialogInterface.OnClickListener, DialogInterface.OnCancelListener, Runnable
 {
-
     private final Activity activityToFinish;
 
-    FinishListener(Activity activityToFinish)
+    public FinishListener(Activity activityToFinish)
     {
         this.activityToFinish = activityToFinish;
     }

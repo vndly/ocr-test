@@ -11,7 +11,7 @@ import com.mauriciotogneri.ocrtest.camera.CameraManager;
 /**
  * This class handles all the messaging which comprises the state machine for capture.
  * <p>
- * The code for this class was adapted from the ZXing project: http://code.google.com/p/zxing/
+ * The code for this class was adapted from the ZXing project: https://github.com/zxing/zxing
  */
 final class CaptureActivityHandler extends Handler
 {

@@ -22,9 +22,6 @@ import android.util.Log;
 
 import com.googlecode.tesseract.android.TessBaseAPI;
 
-import org.xeustechnologies.jtar.TarEntry;
-import org.xeustechnologies.jtar.TarInputStream;
-
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -222,26 +219,6 @@ final class OcrInitAsyncTask extends AsyncTask<String, String, Boolean>
                     return false;
                 }
             }
-
-            // If we have a tar file at this point because we downloaded v3.01+ data, untar it
-            String extension = destinationFilenameBase.substring(
-                    destinationFilenameBase.lastIndexOf('.'),
-                    destinationFilenameBase.length());
-            if (extension.equals(".tar"))
-            {
-                try
-                {
-                    untar(new File(tessdataDir.toString() + File.separator + destinationFilenameBase),
-                          tessdataDir);
-                    installSuccess = true;
-                }
-                catch (IOException e)
-                {
-                    Log.e(TAG, "Untar failed");
-                    return false;
-                }
-            }
-
         }
         else
         {
@@ -547,91 +524,6 @@ final class OcrInitAsyncTask extends AsyncTask<String, String, Boolean>
         int b1 = raf.read();
         raf.close();
         return (b1 << 24) | (b2 << 16) + (b3 << 8) + b4;
-    }
-
-    /**
-     * Untar the contents of a tar file into the given directory, ignoring the
-     * relative pathname in the tar file, and delete the tar file.
-     * <p>
-     * Uses jtar: http://code.google.com/p/jtar/
-     *
-     * @param tarFile        The tar file to be untarred
-     * @param destinationDir The directory to untar into
-     * @throws IOException
-     */
-    private void untar(File tarFile, File destinationDir) throws IOException
-    {
-        Log.d(TAG, "Untarring...");
-        final int uncompressedSize = getTarSizeUncompressed(tarFile);
-        Integer percentComplete;
-        int percentCompleteLast = 0;
-        int unzippedBytes = 0;
-        final Integer progressMin = 50;
-        final int progressMax = 100 - progressMin;
-        publishProgress("Uncompressing data for " + languageName + "...",
-                        progressMin.toString());
-
-        // Extract all the files
-        TarInputStream tarInputStream = new TarInputStream(new BufferedInputStream(
-                new FileInputStream(tarFile)));
-        TarEntry entry;
-        while ((entry = tarInputStream.getNextEntry()) != null)
-        {
-            int len;
-            final int BUFFER = 8192;
-            byte data[] = new byte[BUFFER];
-            String pathName = entry.getName();
-            String fileName = pathName.substring(pathName.lastIndexOf('/'), pathName.length());
-            OutputStream outputStream = new FileOutputStream(destinationDir + fileName);
-            BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
-
-            Log.d(TAG, "Writing " + fileName.substring(1, fileName.length()) + "...");
-            while ((len = tarInputStream.read(data, 0, BUFFER)) != -1)
-            {
-                bufferedOutputStream.write(data, 0, len);
-                unzippedBytes += len;
-                percentComplete = (int) ((unzippedBytes / (float) uncompressedSize) * progressMax)
-                        + progressMin;
-                if (percentComplete > percentCompleteLast)
-                {
-                    publishProgress("Uncompressing data for " + languageName + "...",
-                                    percentComplete.toString());
-                    percentCompleteLast = percentComplete;
-                }
-            }
-            bufferedOutputStream.flush();
-            bufferedOutputStream.close();
-        }
-        tarInputStream.close();
-
-        if (tarFile.exists())
-        {
-            tarFile.delete();
-        }
-    }
-
-    /**
-     * Return the uncompressed size for a Tar file.
-     *
-     * @param tarFile The Tarred file
-     * @return Size when uncompressed, in bytes
-     * @throws IOException
-     */
-    private int getTarSizeUncompressed(File tarFile) throws IOException
-    {
-        int size = 0;
-        TarInputStream tis = new TarInputStream(new BufferedInputStream(
-                new FileInputStream(tarFile)));
-        TarEntry entry;
-        while ((entry = tis.getNextEntry()) != null)
-        {
-            if (!entry.isDirectory())
-            {
-                size += entry.getSize();
-            }
-        }
-        tis.close();
-        return size;
     }
 
     /**

@@ -29,5 +29,4 @@ android
 dependencies
 {
     compile 'com.rmtheis:tess-two:6.2.0'
-    compile 'org.xeustechnologies:jtar:1.1'
 }

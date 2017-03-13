@@ -39,25 +39,17 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
 {
     private CameraManager cameraManager;
     private CaptureActivityHandler handler;
-    private SurfaceView surfaceView;
     private SurfaceHolder surfaceHolder;
     private TextView statusViewBottom;
     private TextView statusViewTop;
-    private TextView ocrResultView;
-    private TextView translationView;
     private View cameraButtonView;
     private View resultView;
     private View progressView;
     private OcrResult lastResult;
-    private Bitmap lastBitmap;
     private boolean hasSurface;
     private TessBaseAPI baseApi; // Java interface for the Tesseract OCR engine
 
     private final String sourceLanguageCodeOcr = Configuration.DEFAULT_SOURCE_LANGUAGE_CODE;
-    private final int pageSegmentationMode = Configuration.DEFAULT_PAGE_SEGMENTATION_MODE;
-    private final int ocrEngineMode = Configuration.DEFAULT_OCR_ENGINE_MODE;
-    private final String characterBlacklist = Configuration.DEFAULT_BLACKLIST;
-    private final String characterWhitelist = Configuration.DEFAULT_WHITELIST;
     private final boolean isContinuousModeActive = Configuration.DEFAULT_TOGGLE_CONTINUOUS;
 
     private Button shutterButton;
@@ -138,9 +130,9 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
             }
         });
 
-        ocrResultView = (TextView) findViewById(R.id.ocr_result_text_view);
+        TextView ocrResultView = (TextView) findViewById(R.id.ocr_result_text_view);
         registerForContextMenu(ocrResultView);
-        translationView = (TextView) findViewById(R.id.translation_text_view);
+        TextView translationView = (TextView) findViewById(R.id.translation_text_view);
         registerForContextMenu(translationView);
 
         progressView = findViewById(R.id.indeterminate_progress_indicator_view);
@@ -156,24 +148,17 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
         super.onResume();
         resetStatusView();
 
-        String previousSourceLanguageCodeOcr = sourceLanguageCodeOcr;
-        int previousOcrEngineMode = ocrEngineMode;
-
-        // Set up the camera preview surface.
-        surfaceView = (SurfaceView) findViewById(R.id.preview_view);
+        SurfaceView surfaceView = (SurfaceView) findViewById(R.id.preview_view);
         surfaceHolder = surfaceView.getHolder();
+
         if (!hasSurface)
         {
             surfaceHolder.addCallback(this);
             surfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
         }
 
-        // Comment out the following block to test non-OCR functions without an SD card
-
         // Do OCR engine initialization, if necessary
-        boolean doNewInit = (baseApi == null) || !sourceLanguageCodeOcr.equals(previousSourceLanguageCodeOcr) ||
-                ocrEngineMode != previousOcrEngineMode;
-        if (doNewInit)
+        if (baseApi == null)
         {
             // Initialize the OCR engine
             File storageDirectory = getStorageDirectory();
@@ -210,9 +195,9 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
         }
         if (baseApi != null)
         {
-            baseApi.setPageSegMode(pageSegmentationMode);
-            baseApi.setVariable(TessBaseAPI.VAR_CHAR_BLACKLIST, characterBlacklist);
-            baseApi.setVariable(TessBaseAPI.VAR_CHAR_WHITELIST, characterWhitelist);
+            baseApi.setPageSegMode(Configuration.DEFAULT_PAGE_SEGMENTATION_MODE);
+            baseApi.setVariable(TessBaseAPI.VAR_CHAR_BLACKLIST, Configuration.DEFAULT_BLACKLIST);
+            baseApi.setVariable(TessBaseAPI.VAR_CHAR_WHITELIST, Configuration.DEFAULT_WHITELIST);
         }
 
         if (hasSurface)
@@ -490,7 +475,7 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
 
         // Start AsyncTask to install language data and init OCR
         baseApi = new TessBaseAPI();
-        new OcrInitAsyncTask(this, baseApi, dialog, indeterminateDialog, languageCode, ocrEngineMode).execute(storageRoot.toString());
+        new OcrInitAsyncTask(this, baseApi, dialog, indeterminateDialog, languageCode, Configuration.DEFAULT_OCR_ENGINE_MODE).execute(storageRoot.toString());
     }
 
     /**
@@ -520,7 +505,8 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
         resultView.setVisibility(View.VISIBLE);
 
         ImageView bitmapImageView = (ImageView) findViewById(R.id.image_view);
-        lastBitmap = ocrResult.getBitmap();
+        Bitmap lastBitmap = ocrResult.getBitmap();
+
         if (lastBitmap == null)
         {
             bitmapImageView.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher));

@@ -1186,7 +1186,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
     String getOcrEngineModeName()
     {
         String ocrEngineModeName = "";
-        String[] ocrEngineModes = getResources().getStringArray(R.array.ocrenginemodes);
+        String[] ocrEngineModes = new String[]{"Tesseract", "Cube", "Both"};
         if (ocrEngineMode == TessBaseAPI.OEM_TESSERACT_ONLY)
         {
             ocrEngineModeName = ocrEngineModes[0];
@@ -1224,7 +1224,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
         }
 
         // Retrieve from preferences, and set in this Activity, the page segmentation mode preference
-        String[] pageSegmentationModes = getResources().getStringArray(R.array.pagesegmentationmodes);
+        String[] pageSegmentationModes = new String[]{"Auto"};//getResources().getStringArray(R.array.pagesegmentationmodes);
         String pageSegmentationModeName = prefs.getString(PreferencesActivity.KEY_PAGE_SEGMENTATION_MODE, pageSegmentationModes[0]);
         if (pageSegmentationModeName.equals(pageSegmentationModes[0]))
         {
@@ -1264,7 +1264,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
         }
 
         // Retrieve from preferences, and set in this Activity, the OCR engine mode
-        String[] ocrEngineModes = getResources().getStringArray(R.array.ocrenginemodes);
+        String[] ocrEngineModes = new String[]{"Tesseract", "Cube", "Both"};//getResources().getStringArray(R.array.ocrenginemodes);
         String ocrEngineModeName = prefs.getString(PreferencesActivity.KEY_OCR_ENGINE_MODE, ocrEngineModes[0]);
         if (ocrEngineModeName.equals(ocrEngineModes[0]))
         {

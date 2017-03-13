@@ -5,13 +5,10 @@
 	<PreferenceCategory android:title="General settings">
 
 		<CheckBoxPreference android:key="preference_capture_continuous"
-			android:title="Continuous preview"
-			android:entries="@array/capturemodes" />
+			android:title="Continuous preview"/>
 
 		<ListPreference android:title="Recognize"
-			android:key="sourceLanguageCodeOcrPref"
-			android:entries="@array/languagenames"
-			android:entryValues="@array/iso6393" />
+			android:key="sourceLanguageCodeOcrPref"/>
 			
 	</PreferenceCategory>
 
@@ -23,15 +20,11 @@
 
 		<ListPreference android:key="targetLanguageCodeTranslationPref"  
 			android:title="Translate to"
-			android:dependency="preference_translation_toggle_translation"
-			android:entries="@array/translationtargetlanguagenames_google" 
-			android:entryValues="@array/translationtargetiso6391_google" />
+			android:dependency="preference_translation_toggle_translation"/>
 			
 		<ListPreference android:key="preference_translator" 
 			android:title="Translator"
-		    android:dependency="preference_translation_toggle_translation"
-			android:entries="@array/translators" 
-			android:entryValues="@array/translators" />
+		    android:dependency="preference_translation_toggle_translation"/>
 						
 	</PreferenceCategory>
 
@@ -39,9 +32,7 @@
 	<PreferenceCategory android:title="Advanced settings">
 
 	    <ListPreference android:key="preference_ocr_engine_mode"
-	        android:title="OCR engine"
-	        android:entries="@array/ocrenginemodes"
-	        android:entryValues="@array/ocrenginemodes"/>
+	        android:title="OCR engine"/>
 	    
 	    <CheckBoxPreference
 	        android:key="preferences_auto_focus"
@@ -65,9 +56,7 @@
 -->
 
 	    <ListPreference android:key="preference_page_segmentation_mode"
-			android:title="Page segmentation"
-			android:entries="@array/pagesegmentationmodes"
-			android:entryValues="@array/pagesegmentationmodes" />
+			android:title="Page segmentation"/>
 
 	    <CheckBoxPreference
             android:key="preferences_reverse_image"

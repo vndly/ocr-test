@@ -211,9 +211,6 @@ final class CaptureActivityHandler extends Handler
         if (state == State.SUCCESS)
         {
             state = State.PREVIEW;
-
-            // Draw the viewfinder.
-            activity.drawViewfinder();
         }
     }
 
@@ -227,7 +224,6 @@ final class CaptureActivityHandler extends Handler
 
         // Continue requesting decode of images
         cameraManager.requestOcrDecode(decodeThread.getHandler(), R.id.ocr_continuous_decode);
-        activity.drawViewfinder();
     }
 
     /**

@@ -173,24 +173,24 @@ final class DecodeHandler extends Handler
             ocrResult = new OcrResult();
             ocrResult.setWordConfidences(baseApi.wordConfidences());
             ocrResult.setMeanConfidence(baseApi.meanConfidence());
-            if (ViewfinderView.DRAW_REGION_BOXES)
+            /*if (ViewfinderView.DRAW_REGION_BOXES)
             {
                 Pixa regions = baseApi.getRegions();
                 ocrResult.setRegionBoundingBoxes(regions.getBoxRects());
                 regions.recycle();
-            }
-            if (ViewfinderView.DRAW_TEXTLINE_BOXES)
-            {
+            }*/
+            //if (ViewfinderView.DRAW_TEXTLINE_BOXES)
+            //{
                 Pixa textlines = baseApi.getTextlines();
                 ocrResult.setTextlineBoundingBoxes(textlines.getBoxRects());
                 textlines.recycle();
-            }
-            if (ViewfinderView.DRAW_STRIP_BOXES)
+            //}
+            /*if (ViewfinderView.DRAW_STRIP_BOXES)
             {
                 Pixa strips = baseApi.getStrips();
                 ocrResult.setStripBoundingBoxes(strips.getBoxRects());
                 strips.recycle();
-            }
+            }*/
 
             // Always get the word bounding boxes--we want it for annotating the bitmap after the user
             // presses the shutter button, in addition to maybe wanting to draw boxes/words during the

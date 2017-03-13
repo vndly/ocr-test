@@ -48,19 +48,8 @@ import com.mauriciotogneri.ocrtest.camera.CameraManager;
 import java.io.File;
 import java.io.IOException;
 
-/**
- * This activity opens the camera and does the actual scanning on a background thread. It draws a
- * viewfinder to help the user place the text correctly, shows feedback as the image processing
- * is happening, and then overlays the results when a scan is successful.
- * <p>
- * The code for this class was adapted from the ZXing project: http://code.google.com/p/zxing/
- */
 public final class CaptureActivity extends AppCompatActivity implements SurfaceHolder.Callback
 {
-    private static final String TAG = CaptureActivity.class.getSimpleName();
-
-    // Note: These constants will be overridden by any default values defined in preferences.xml.
-
     /**
      * ISO 639-3 language code indicating the default recognition language.
      */
@@ -372,7 +361,7 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
                         }
                         catch (NullPointerException e)
                         {
-                            Log.e(TAG, "Framing rect not available", e);
+                            Log.e(getClass().getName(), "Framing rect not available", e);
                         }
                         v.invalidate();
                         lastX = currentX;
@@ -438,7 +427,7 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
      */
     void resumeOCR()
     {
-        Log.d(TAG, "resumeOCR()");
+        Log.d(getClass().getName(), "resumeOCR()");
 
         // This method is called when Tesseract has already been successfully initialized, so set
         // isEngineReady = true here.
@@ -505,17 +494,17 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
     @Override
     public void surfaceCreated(SurfaceHolder holder)
     {
-        Log.d(TAG, "surfaceCreated()");
+        Log.d(getClass().getName(), "surfaceCreated()");
 
         if (holder == null)
         {
-            Log.e(TAG, "surfaceCreated gave us a null surface");
+            Log.e(getClass().getName(), "surfaceCreated gave us a null surface");
         }
 
         // Only initialize the camera if the OCR engine is ready to go.
         if (!hasSurface && isEngineReady)
         {
-            Log.d(TAG, "surfaceCreated(): calling initCamera()...");
+            Log.d(getClass().getName(), "surfaceCreated(): calling initCamera()...");
             initCamera(holder);
         }
         hasSurface = true;
@@ -526,7 +515,7 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
      */
     private void initCamera(SurfaceHolder surfaceHolder)
     {
-        Log.d(TAG, "initCamera()");
+        Log.d(getClass().getName(), "initCamera()");
         if (surfaceHolder == null)
         {
             throw new IllegalStateException("No SurfaceHolder provided");
@@ -600,7 +589,7 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
             // First check if we're paused in continuous mode, and if so, just unpause.
             if (isPaused)
             {
-                Log.d(TAG, "only resuming continuous recognition, not quitting...");
+                Log.d(getClass().getName(), "only resuming continuous recognition, not quitting...");
                 resumeContinuousDecoding();
                 return true;
             }
@@ -697,7 +686,7 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
      */
     private File getStorageDirectory()
     {
-        //Log.d(TAG, "getStorageDirectory(): API level is " + Integer.valueOf(android.os.Build.VERSION.SDK_INT));
+        //Log.d(getClass().getName(), "getStorageDirectory(): API level is " + Integer.valueOf(android.os.Build.VERSION.SDK_INT));
 
         String state = null;
         try
@@ -706,7 +695,7 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
         }
         catch (RuntimeException e)
         {
-            Log.e(TAG, "Is the SD card visible?", e);
+            Log.e(getClass().getName(), "Is the SD card visible?", e);
             showErrorMessage("Error", "Required external storage (such as an SD card) is unavailable.");
         }
 
@@ -724,7 +713,7 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
             catch (NullPointerException e)
             {
                 // We get an error here if the SD card is visible, but full
-                Log.e(TAG, "External storage is unavailable");
+                Log.e(getClass().getName(), "External storage is unavailable");
                 showErrorMessage("Error", "Required external storage (such as an SD card) is full or unavailable.");
             }
 
@@ -732,14 +721,14 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
         else if (Environment.MEDIA_MOUNTED_READ_ONLY.equals(state))
         {
             // We can only read the media
-            Log.e(TAG, "External storage is read-only");
+            Log.e(getClass().getName(), "External storage is read-only");
             showErrorMessage("Error", "Required external storage (such as an SD card) is unavailable for data storage.");
         }
         else
         {
             // Something else is wrong. It may be one of many other states, but all we need
             // to know is we can neither read nor write
-            Log.e(TAG, "External storage is unavailable");
+            Log.e(getClass().getName(), "External storage is unavailable");
             showErrorMessage("Error", "Required external storage (such as an SD card) is unavailable or corrupted.");
         }
         return null;
@@ -820,7 +809,7 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
         // with low memory that crash when running OCR with Cube, and prevent unwanted delays.
         if (ocrEngineMode == TessBaseAPI.OEM_CUBE_ONLY || ocrEngineMode == TessBaseAPI.OEM_TESSERACT_CUBE_COMBINED)
         {
-            Log.d(TAG, "Disabling continuous preview");
+            Log.d(getClass().getName(), "Disabling continuous preview");
             isContinuousModeActive = false;
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
             prefs.edit().putBoolean(PreferencesActivity.KEY_CONTINUOUS_PREVIEW, false);
@@ -1163,7 +1152,7 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
         }
         catch (PackageManager.NameNotFoundException e)
         {
-            Log.w(TAG, e);
+            Log.w(getClass().getName(), e);
         }
         return false;
     }
@@ -1176,7 +1165,7 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
     String getOcrEngineModeName()
     {
         String ocrEngineModeName = "";
-        String[] ocrEngineModes = new String[]{"Tesseract", "Cube", "Both"};
+        String[] ocrEngineModes = new String[] {"Tesseract", "Cube", "Both"};
         if (ocrEngineMode == TessBaseAPI.OEM_TESSERACT_ONLY)
         {
             ocrEngineModeName = ocrEngineModes[0];
@@ -1214,7 +1203,7 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
         }
 
         // Retrieve from preferences, and set in this Activity, the page segmentation mode preference
-        String[] pageSegmentationModes = new String[]{"Auto"};//getResources().getStringArray(R.array.pagesegmentationmodes);
+        String[] pageSegmentationModes = new String[] {"Auto"};//getResources().getStringArray(R.array.pagesegmentationmodes);
         String pageSegmentationModeName = prefs.getString(PreferencesActivity.KEY_PAGE_SEGMENTATION_MODE, pageSegmentationModes[0]);
         if (pageSegmentationModeName.equals(pageSegmentationModes[0]))
         {
@@ -1254,7 +1243,7 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
         }
 
         // Retrieve from preferences, and set in this Activity, the OCR engine mode
-        String[] ocrEngineModes = new String[]{"Tesseract", "Cube", "Both"};//getResources().getStringArray(R.array.ocrenginemodes);
+        String[] ocrEngineModes = new String[] {"Tesseract", "Cube", "Both"};//getResources().getStringArray(R.array.ocrenginemodes);
         String ocrEngineModeName = prefs.getString(PreferencesActivity.KEY_OCR_ENGINE_MODE, ocrEngineModes[0]);
         if (ocrEngineModeName.equals(ocrEngineModes[0]))
         {

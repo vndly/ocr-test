@@ -1,18 +1,3 @@
-/*
- * Copyright 2011 Robert Theis
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.mauriciotogneri.ocrtest;
 
 import android.app.ProgressDialog;
@@ -22,20 +7,11 @@ import android.util.Log;
 
 import com.googlecode.tesseract.android.TessBaseAPI;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.RandomAccessFile;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -47,28 +23,12 @@ final class OcrInitAsyncTask extends AsyncTask<String, String, Boolean>
 {
     private static final String TAG = OcrInitAsyncTask.class.getSimpleName();
 
-    /**
-     * Suffixes of required data files for Cube.
-     */
-    private static final String[] CUBE_DATA_FILES = {
-            ".cube.bigrams",
-            ".cube.fold",
-            ".cube.lm",
-            ".cube.nn",
-            ".cube.params",
-            //".cube.size", // This file is not available for Hindi
-            ".cube.word-freq",
-            ".tesseract_cube.nn",
-            ".traineddata"
-    };
-
-    private CaptureActivity activity;
     private Context context;
+    private CaptureActivity activity;
     private TessBaseAPI baseApi;
     private ProgressDialog dialog;
     private ProgressDialog indeterminateDialog;
     private final String languageCode;
-    private String languageName;
     private int ocrEngineMode;
 
     /**
@@ -87,12 +47,11 @@ final class OcrInitAsyncTask extends AsyncTask<String, String, Boolean>
                      int ocrEngineMode)
     {
         this.activity = activity;
-        this.context = activity.getBaseContext();
+        this.context = activity;
         this.baseApi = baseApi;
         this.dialog = dialog;
         this.indeterminateDialog = indeterminateDialog;
         this.languageCode = languageCode;
-        this.languageName = languageName;
         this.ocrEngineMode = ocrEngineMode;
     }
 
@@ -154,25 +113,10 @@ final class OcrInitAsyncTask extends AsyncTask<String, String, Boolean>
             {
                 tesseractTestFile.delete();
             }
-            deleteCubeDataFiles(tessdataDir);
         }
 
         // Check whether all Cube data files have already been installed
         boolean isAllCubeDataInstalled = false;
-        if (isCubeSupported)
-        {
-            boolean isAFileMissing = false;
-            File dataFile;
-            for (String s : CUBE_DATA_FILES)
-            {
-                dataFile = new File(tessdataDir.toString() + File.separator + languageCode + s);
-                if (!dataFile.exists())
-                {
-                    isAFileMissing = true;
-                }
-            }
-            isAllCubeDataInstalled = !isAFileMissing;
-        }
 
         // If language data files are not present, install them
         boolean installSuccess = false;
@@ -180,7 +124,6 @@ final class OcrInitAsyncTask extends AsyncTask<String, String, Boolean>
                 || (isCubeSupported && !isAllCubeDataInstalled))
         {
             Log.d(TAG, "Language data for " + languageCode + " not found in " + tessdataDir.toString());
-            deleteCubeDataFiles(tessdataDir);
 
             // Check assets for language data to install. If not present, download from Internet
             try
@@ -200,25 +143,25 @@ final class OcrInitAsyncTask extends AsyncTask<String, String, Boolean>
                 Log.e(TAG, "Got exception", e);
             }
 
-            if (!installSuccess)
-            {
-                // File was not packaged in assets, so download it
-                Log.d(TAG, "Downloading " + destinationFilenameBase + ".gz...");
-                try
-                {
-                    installSuccess = downloadFile(destinationFilenameBase, downloadFile);
-                    if (!installSuccess)
-                    {
-                        Log.e(TAG, "Download failed");
-                        return false;
-                    }
-                }
-                catch (IOException e)
-                {
-                    Log.e(TAG, "IOException received in doInBackground. Is a network connection available?");
-                    return false;
-                }
-            }
+//            if (!installSuccess)
+//            {
+//                // File was not packaged in assets, so download it
+//                Log.d(TAG, "Downloading " + destinationFilenameBase + ".gz...");
+//                try
+//                {
+//                    installSuccess = downloadFile(destinationFilenameBase, downloadFile);
+//                    if (!installSuccess)
+//                    {
+//                        Log.e(TAG, "Download failed");
+//                        return false;
+//                    }
+//                }
+//                catch (IOException e)
+//                {
+//                    Log.e(TAG, "IOException received in doInBackground. Is a network connection available?");
+//                    return false;
+//                }
+//            }
         }
         else
         {
@@ -233,7 +176,6 @@ final class OcrInitAsyncTask extends AsyncTask<String, String, Boolean>
         if (!osdFile.exists())
         {
             // Check assets for language data to install. If not present, download from Internet
-            languageName = "orientation and script detection";
             try
             {
                 // Check for, and delete, partially-downloaded OSD files
@@ -263,26 +205,26 @@ final class OcrInitAsyncTask extends AsyncTask<String, String, Boolean>
                 Log.e(TAG, "Got exception", e);
             }
 
-            if (!osdInstallSuccess)
-            {
-                // File was not packaged in assets, so download it
-                Log.d(TAG, "Downloading " + CaptureActivity.OSD_FILENAME + ".gz...");
-                try
-                {
-                    osdInstallSuccess = downloadFile(CaptureActivity.OSD_FILENAME, new File(tessdataDir,
-                                                                                            CaptureActivity.OSD_FILENAME));
-                    if (!osdInstallSuccess)
-                    {
-                        Log.e(TAG, "Download failed");
-                        return false;
-                    }
-                }
-                catch (IOException e)
-                {
-                    Log.e(TAG, "IOException received in doInBackground. Is a network connection available?");
-                    return false;
-                }
-            }
+//            if (!osdInstallSuccess)
+//            {
+//                // File was not packaged in assets, so download it
+//                Log.d(TAG, "Downloading " + CaptureActivity.OSD_FILENAME + ".gz...");
+//                try
+//                {
+//                    osdInstallSuccess = downloadFile(CaptureActivity.OSD_FILENAME, new File(tessdataDir,
+//                                                                                            CaptureActivity.OSD_FILENAME));
+//                    if (!osdInstallSuccess)
+//                    {
+//                        Log.e(TAG, "Download failed");
+//                        return false;
+//                    }
+//                }
+//                catch (IOException e)
+//                {
+//                    Log.e(TAG, "IOException received in doInBackground. Is a network connection available?");
+//                    return false;
+//                }
+//            }
 
         }
         else
@@ -310,256 +252,6 @@ final class OcrInitAsyncTask extends AsyncTask<String, String, Boolean>
     }
 
     /**
-     * Delete any existing data files for Cube that are present in the given directory. Files may be
-     * partially uncompressed files left over from a failed install, or pre-v3.01 traineddata files.
-     *
-     * @param tessdataDir Directory to delete the files from
-     */
-    private void deleteCubeDataFiles(File tessdataDir)
-    {
-        File badFile;
-        for (String s : CUBE_DATA_FILES)
-        {
-            badFile = new File(tessdataDir.toString() + File.separator + languageCode + s);
-            if (badFile.exists())
-            {
-                Log.d(TAG, "Deleting existing file " + badFile.toString());
-                badFile.delete();
-            }
-            badFile = new File(tessdataDir.toString() + File.separator + "tesseract-ocr-3.01."
-                                       + languageCode + ".tar");
-            if (badFile.exists())
-            {
-                Log.d(TAG, "Deleting existing file " + badFile.toString());
-                badFile.delete();
-            }
-        }
-    }
-
-    /**
-     * Download a file from the site specified by DOWNLOAD_BASE, and gunzip to the given destination.
-     *
-     * @param sourceFilenameBase Name of file to download, minus the required ".gz" extension
-     * @param destinationFile    Name of file to save the unzipped data to, including path
-     * @return True if download and unzip are successful
-     * @throws IOException
-     */
-    private boolean downloadFile(String sourceFilenameBase, File destinationFile)
-            throws IOException
-    {
-        try
-        {
-            return downloadGzippedFileHttp(new URL(CaptureActivity.DOWNLOAD_BASE + sourceFilenameBase +
-                                                           ".gz"),
-                                           destinationFile);
-        }
-        catch (MalformedURLException e)
-        {
-            throw new IllegalArgumentException("Bad URL string.");
-        }
-    }
-
-    /**
-     * Download a gzipped file using an HttpURLConnection, and gunzip it to the given destination.
-     *
-     * @param url             URL to download from
-     * @param destinationFile File to save the download as, including path
-     * @return True if response received, destinationFile opened, and unzip
-     * successful
-     * @throws IOException
-     */
-    private boolean downloadGzippedFileHttp(URL url, File destinationFile)
-            throws IOException
-    {
-        // Send an HTTP GET request for the file
-        Log.d(TAG, "Sending GET request to " + url + "...");
-        publishProgress("Downloading data for " + languageName + "...", "0");
-        HttpURLConnection urlConnection = null;
-        urlConnection = (HttpURLConnection) url.openConnection();
-        urlConnection.setAllowUserInteraction(false);
-        urlConnection.setInstanceFollowRedirects(true);
-        urlConnection.setRequestMethod("GET");
-        urlConnection.connect();
-        if (urlConnection.getResponseCode() != HttpURLConnection.HTTP_OK)
-        {
-            Log.e(TAG, "Did not get HTTP_OK response.");
-            Log.e(TAG, "Response code: " + urlConnection.getResponseCode());
-            Log.e(TAG, "Response message: " + urlConnection.getResponseMessage().toString());
-            return false;
-        }
-        int fileSize = urlConnection.getContentLength();
-        InputStream inputStream = urlConnection.getInputStream();
-        File tempFile = new File(destinationFile.toString() + ".gz.download");
-
-        // Stream the file contents to a local file temporarily
-        Log.d(TAG, "Streaming download to " + destinationFile.toString() + ".gz.download...");
-        final int BUFFER = 8192;
-        FileOutputStream fileOutputStream = null;
-        Integer percentComplete;
-        int percentCompleteLast = 0;
-        try
-        {
-            fileOutputStream = new FileOutputStream(tempFile);
-        }
-        catch (FileNotFoundException e)
-        {
-            Log.e(TAG, "Exception received when opening FileOutputStream.", e);
-        }
-        int downloaded = 0;
-        byte[] buffer = new byte[BUFFER];
-        int bufferLength = 0;
-        while ((bufferLength = inputStream.read(buffer, 0, BUFFER)) > 0)
-        {
-            fileOutputStream.write(buffer, 0, bufferLength);
-            downloaded += bufferLength;
-            percentComplete = (int) ((downloaded / (float) fileSize) * 100);
-            if (percentComplete > percentCompleteLast)
-            {
-                publishProgress(
-                        "Downloading data for " + languageName + "...",
-                        percentComplete.toString());
-                percentCompleteLast = percentComplete;
-            }
-        }
-        fileOutputStream.close();
-        if (urlConnection != null)
-        {
-            urlConnection.disconnect();
-        }
-
-        // Uncompress the downloaded temporary file into place, and remove the temporary file
-        try
-        {
-            Log.d(TAG, "Unzipping...");
-            gunzip(tempFile,
-                   new File(tempFile.toString().replace(".gz.download", "")));
-            return true;
-        }
-        catch (FileNotFoundException e)
-        {
-            Log.e(TAG, "File not available for unzipping.");
-        }
-        catch (IOException e)
-        {
-            Log.e(TAG, "Problem unzipping file.");
-        }
-        return false;
-    }
-
-    /**
-     * Unzips the given Gzipped file to the given destination, and deletes the
-     * gzipped file.
-     *
-     * @param zippedFile  The gzipped file to be uncompressed
-     * @param outFilePath File to unzip to, including path
-     * @throws FileNotFoundException
-     * @throws IOException
-     */
-    private void gunzip(File zippedFile, File outFilePath)
-            throws FileNotFoundException, IOException
-    {
-        int uncompressedFileSize = getGzipSizeUncompressed(zippedFile);
-        Integer percentComplete;
-        int percentCompleteLast = 0;
-        int unzippedBytes = 0;
-        final Integer progressMin = 0;
-        int progressMax = 100 - progressMin;
-        publishProgress("Uncompressing data for " + languageName + "...",
-                        progressMin.toString());
-
-        // If the file is a tar file, just show progress to 50%
-        String extension = zippedFile.toString().substring(
-                zippedFile.toString().length() - 16);
-        if (extension.equals(".tar.gz.download"))
-        {
-            progressMax = 50;
-        }
-        GZIPInputStream gzipInputStream = new GZIPInputStream(
-                new BufferedInputStream(new FileInputStream(zippedFile)));
-        OutputStream outputStream = new FileOutputStream(outFilePath);
-        BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(
-                outputStream);
-
-        final int BUFFER = 8192;
-        byte[] data = new byte[BUFFER];
-        int len;
-        while ((len = gzipInputStream.read(data, 0, BUFFER)) > 0)
-        {
-            bufferedOutputStream.write(data, 0, len);
-            unzippedBytes += len;
-            percentComplete = (int) ((unzippedBytes / (float) uncompressedFileSize) * progressMax)
-                    + progressMin;
-
-            if (percentComplete > percentCompleteLast)
-            {
-                publishProgress("Uncompressing data for " + languageName
-                                        + "...", percentComplete.toString());
-                percentCompleteLast = percentComplete;
-            }
-        }
-        gzipInputStream.close();
-        bufferedOutputStream.flush();
-        bufferedOutputStream.close();
-
-        if (zippedFile.exists())
-        {
-            zippedFile.delete();
-        }
-    }
-
-    /**
-     * Returns the uncompressed size for a Gzipped file.
-     *
-     * @param file Gzipped file to get the size for
-     * @return Size when uncompressed, in bytes
-     * @throws IOException
-     */
-    private int getGzipSizeUncompressed(File zipFile) throws IOException
-    {
-        RandomAccessFile raf = new RandomAccessFile(zipFile, "r");
-        raf.seek(raf.length() - 4);
-        int b4 = raf.read();
-        int b3 = raf.read();
-        int b2 = raf.read();
-        int b1 = raf.read();
-        raf.close();
-        return (b1 << 24) | (b2 << 16) + (b3 << 8) + b4;
-    }
-
-    /**
-     * Install a file from application assets to device external storage.
-     *
-     * @param sourceFilename  File in assets to install
-     * @param modelRoot       Directory on SD card to install the file to
-     * @param destinationFile File name for destination, excluding path
-     * @return True if installZipFromAssets returns true
-     * @throws IOException
-     */
-    private boolean installFromAssets(String sourceFilename, File modelRoot,
-                                      File destinationFile) throws IOException
-    {
-        String extension = sourceFilename.substring(sourceFilename.lastIndexOf('.'),
-                                                    sourceFilename.length());
-        try
-        {
-            if (extension.equals(".zip"))
-            {
-                return installZipFromAssets(sourceFilename, modelRoot, destinationFile);
-            }
-            else
-            {
-                throw new IllegalArgumentException("Extension " + extension
-                                                           + " is unsupported.");
-            }
-        }
-        catch (FileNotFoundException e)
-        {
-            Log.d(TAG, "Language not packaged in application assets.");
-        }
-        return false;
-    }
-
-    /**
      * Unzip the given Zip file, located in application assets, into the given
      * destination file.
      *
@@ -575,7 +267,7 @@ final class OcrInitAsyncTask extends AsyncTask<String, String, Boolean>
             FileNotFoundException
     {
         // Attempt to open the zip archive
-        publishProgress("Uncompressing data for " + languageName + "...", "0");
+        publishProgress("Uncompressing data for " + "eng" + "...", "0");
         ZipInputStream inputStream = new ZipInputStream(context.getAssets().open(sourceFilename));
 
         // Loop through all the files and folders in the zip archive (but there should just be one)
@@ -613,7 +305,7 @@ final class OcrInitAsyncTask extends AsyncTask<String, String, Boolean>
                     percentComplete = (int) ((unzippedSize / (long) zippedFileSize) * 100);
                     if (percentComplete > percentCompleteLast)
                     {
-                        publishProgress("Uncompressing data for " + languageName + "...",
+                        publishProgress("Uncompressing data for " + "eng" + "...",
                                         percentComplete.toString(), "0");
                         percentCompleteLast = percentComplete;
                     }
@@ -627,6 +319,39 @@ final class OcrInitAsyncTask extends AsyncTask<String, String, Boolean>
     }
 
     /**
+     * Install a file from application assets to device external storage.
+     *
+     * @param sourceFilename  File in assets to install
+     * @param modelRoot       Directory on SD card to install the file to
+     * @param destinationFile File name for destination, excluding path
+     * @return True if installZipFromAssets returns true
+     * @throws IOException
+     */
+    private boolean installFromAssets(String sourceFilename, File modelRoot,
+                                      File destinationFile) throws IOException
+    {
+        String extension = sourceFilename.substring(sourceFilename.lastIndexOf('.'),
+                                                    sourceFilename.length());
+        try
+        {
+            if (extension.equals(".zip"))
+            {
+                return installZipFromAssets(sourceFilename, modelRoot, destinationFile);
+            }
+            else
+            {
+                throw new IllegalArgumentException("Extension " + extension
+                                                           + " is unsupported.");
+            }
+        }
+        catch (FileNotFoundException e)
+        {
+            Log.d(TAG, "Language not packaged in application assets.");
+        }
+        return false;
+    }
+
+    /**
      * Update the dialog box with the latest incremental progress.
      *
      * @param message [0] Text to be displayed
@@ -636,9 +361,8 @@ final class OcrInitAsyncTask extends AsyncTask<String, String, Boolean>
     protected void onProgressUpdate(String... message)
     {
         super.onProgressUpdate(message);
-        int percentComplete = 0;
 
-        percentComplete = Integer.parseInt(message[1]);
+        int percentComplete = Integer.parseInt(message[1]);
         dialog.setMessage(message[0]);
         dialog.setProgress(percentComplete);
         dialog.show();

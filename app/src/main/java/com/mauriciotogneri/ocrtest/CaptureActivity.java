@@ -50,15 +50,16 @@ import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.googlecode.tesseract.android.TessBaseAPI;
 import com.mauriciotogneri.ocrtest.camera.CameraManager;
-import com.mauriciotogneri.ocrtest.camera.ShutterButton;
 import com.mauriciotogneri.ocrtest.language.LanguageCodeHelper;
 
 import java.io.File;
@@ -71,10 +72,8 @@ import java.io.IOException;
  * <p>
  * The code for this class was adapted from the ZXing project: http://code.google.com/p/zxing/
  */
-public final class CaptureActivity extends Activity implements SurfaceHolder.Callback,
-        ShutterButton.OnShutterButtonListener
+public final class CaptureActivity extends Activity implements SurfaceHolder.Callback
 {
-
     private static final String TAG = CaptureActivity.class.getSimpleName();
 
     // Note: These constants will be overridden by any default values defined in preferences.xml.
@@ -226,7 +225,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
     private int ocrEngineMode = TessBaseAPI.OEM_TESSERACT_ONLY;
     private String characterBlacklist;
     private String characterWhitelist;
-    private ShutterButton shutterButton;
+    private Button shutterButton;
     private boolean isTranslationActive; // Whether we want to show translations
     private boolean isContinuousModeActive; // Whether we are doing OCR in continuous mode
     private SharedPreferences prefs;
@@ -285,8 +284,27 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
         // Camera shutter button
         if (DISPLAY_SHUTTER_BUTTON)
         {
-            shutterButton = (ShutterButton) findViewById(R.id.shutter_button);
-            shutterButton.setOnShutterButtonListener(this);
+            shutterButton = (Button) findViewById(R.id.shutter_button);
+            shutterButton.setOnClickListener(new OnClickListener()
+            {
+                @Override
+                public void onClick(View v)
+                {
+                    if (isContinuousModeActive)
+                    {
+                        onShutterButtonPressContinuous();
+                    }
+                    else
+                    {
+                        if (handler != null)
+                        {
+                            handler.shutterButtonClick();
+                        }
+                    }
+
+                    //requestDelayedAutoFocus();
+                }
+            });
         }
 
         ocrResultView = (TextView) findViewById(R.id.ocr_result_text_view);
@@ -890,8 +908,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
         lastBitmap = ocrResult.getBitmap();
         if (lastBitmap == null)
         {
-            bitmapImageView.setImageBitmap(BitmapFactory.decodeResource(getResources(),
-                                                                        R.drawable.ic_launcher));
+            bitmapImageView.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher));
         }
         else
         {
@@ -1161,28 +1178,6 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
     void drawViewfinder()
     {
         viewfinderView.drawViewfinder();
-    }
-
-    @Override
-    public void onShutterButtonClick(ShutterButton b)
-    {
-        if (isContinuousModeActive)
-        {
-            onShutterButtonPressContinuous();
-        }
-        else
-        {
-            if (handler != null)
-            {
-                handler.shutterButtonClick();
-            }
-        }
-    }
-
-    @Override
-    public void onShutterButtonFocus(ShutterButton b, boolean pressed)
-    {
-        requestDelayedAutoFocus();
     }
 
     /**

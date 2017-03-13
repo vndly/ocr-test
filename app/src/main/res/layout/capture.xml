@@ -171,14 +171,14 @@
             android:textColor="@color/status_text"
             android:textSize="14sp" />
 
-        <com.mauriciotogneri.ocrtest.camera.ShutterButton
+        <Button
             android:id="@+id/shutter_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentRight="true"
             android:layout_marginRight="8dip"
             android:layout_marginTop="8dip"
-            android:background="@drawable/shutter_button"
+            android:background="@android:drawable/ic_menu_camera"
             android:clickable="true"
             android:focusable="true"
             android:gravity="center_vertical"

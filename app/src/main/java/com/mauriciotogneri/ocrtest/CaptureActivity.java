@@ -73,7 +73,7 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
     /**
      * Whether to initially show a looping, real-time OCR display.
      */
-    public static final boolean DEFAULT_TOGGLE_CONTINUOUS = false;
+    public static final boolean DEFAULT_TOGGLE_CONTINUOUS = true;
 
     /**
      * Whether to initially reverse the image returned by the camera.
@@ -90,7 +90,6 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
      */
     public static final boolean DEFAULT_TOGGLE_LIGHT = false;
 
-
     /**
      * Flag to display the real-time recognition results at the top of the scanning screen.
      */
@@ -101,36 +100,6 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
      */
     private static final boolean CONTINUOUS_DISPLAY_METADATA = true;
 
-    /**
-     * Languages for which Cube data is available.
-     */
-    static final String[] CUBE_SUPPORTED_LANGUAGES = {
-            "ara", // Arabic
-            "eng", // English
-            "hin" // Hindi
-    };
-
-    /**
-     * Languages that require Cube, and cannot run using Tesseract.
-     */
-    private static final String[] CUBE_REQUIRED_LANGUAGES = {
-            "ara" // Arabic
-    };
-
-    /**
-     * Resource to use for data file downloads.
-     */
-    static final String DOWNLOAD_BASE = "http://tesseract-ocr.googlecode.com/files/";
-
-    /**
-     * Download filename for orientation and script detection (OSD) data.
-     */
-    static final String OSD_FILENAME = "tesseract-ocr-3.01.osd.tar";
-
-    /**
-     * Destination filename for orientation and script detection (OSD) data.
-     */
-    static final String OSD_FILENAME_BASE = "osd.traineddata";
 
     // Context menu
     private static final int SETTINGS_ID = Menu.FIRST;
@@ -754,11 +723,11 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
 
         // Disable continuous mode if we're using Cube. This will prevent bad states for devices
         // with low memory that crash when running OCR with Cube, and prevent unwanted delays.
-        if (ocrEngineMode == TessBaseAPI.OEM_CUBE_ONLY || ocrEngineMode == TessBaseAPI.OEM_TESSERACT_CUBE_COMBINED)
-        {
-            Log.d(getClass().getName(), "Disabling continuous preview");
-            isContinuousModeActive = false;
-        }
+//        if (ocrEngineMode == TessBaseAPI.OEM_CUBE_ONLY || ocrEngineMode == TessBaseAPI.OEM_TESSERACT_CUBE_COMBINED)
+//        {
+//            Log.d(getClass().getName(), "Disabling continuous preview");
+//            isContinuousModeActive = false;
+//        }
 
         // Start AsyncTask to install language data and init OCR
         baseApi = new TessBaseAPI();
@@ -1098,14 +1067,7 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
         setSourceLanguage(CaptureActivity.DEFAULT_SOURCE_LANGUAGE_CODE);
 
         // Retrieve from preferences, and set in this Activity, the capture mode preference
-        if (CaptureActivity.DEFAULT_TOGGLE_CONTINUOUS)
-        {
-            isContinuousModeActive = true;
-        }
-        else
-        {
-            isContinuousModeActive = false;
-        }
+        isContinuousModeActive = CaptureActivity.DEFAULT_TOGGLE_CONTINUOUS;
 
         // Retrieve from preferences, and set in this Activity, the page segmentation mode preference
         String[] pageSegmentationModes = new String[] {"Auto"};//getResources().getStringArray(R.array.pagesegmentationmodes);

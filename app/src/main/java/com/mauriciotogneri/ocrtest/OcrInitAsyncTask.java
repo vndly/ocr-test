@@ -1,18 +1,3 @@
-/*
- * Copyright 2011 Robert Theis
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.mauriciotogneri.ocrtest;
 
 import android.app.ProgressDialog;
@@ -108,18 +93,8 @@ final class OcrInitAsyncTask extends AsyncTask<String, String, Boolean>
      */
     protected Boolean doInBackground(String... params)
     {
-        // Check whether we need Cube data or Tesseract data.
-        // Example Cube data filename: "tesseract-ocr-3.01.eng.tar"
-        // Example Tesseract data filename: "eng.traineddata"
         String destinationFilenameBase = languageCode + ".traineddata";
         boolean isCubeSupported = false;
-        for (String s : CaptureActivity.CUBE_SUPPORTED_LANGUAGES)
-        {
-            if (s.equals(languageCode))
-            {
-                isCubeSupported = true;
-            }
-        }
 
         // Check for, and create if necessary, folder to hold model data
         String destinationDirBase = params[0]; // The storage directory, minus the
@@ -180,10 +155,6 @@ final class OcrInitAsyncTask extends AsyncTask<String, String, Boolean>
                 installSuccess = installFromAssets(destinationFilenameBase + ".zip", tessdataDir,
                                                    downloadFile);
             }
-            catch (IOException e)
-            {
-                Log.e(TAG, "IOException", e);
-            }
             catch (Exception e)
             {
                 Log.e(TAG, "Got exception", e);
@@ -194,48 +165,6 @@ final class OcrInitAsyncTask extends AsyncTask<String, String, Boolean>
             Log.d(TAG, "Language data for " + languageCode + " already installed in "
                     + tessdataDir.toString());
             installSuccess = true;
-        }
-
-        // If OSD data file is not present, download it
-        File osdFile = new File(tessdataDir, CaptureActivity.OSD_FILENAME_BASE);
-        boolean osdInstallSuccess = false;
-        if (!osdFile.exists())
-        {
-            // Check assets for language data to install. If not present, download from Internet
-            languageName = "orientation and script detection";
-            try
-            {
-                // Check for, and delete, partially-downloaded OSD files
-                String[] badFiles = {CaptureActivity.OSD_FILENAME + ".gz.download",
-                        CaptureActivity.OSD_FILENAME + ".gz", CaptureActivity.OSD_FILENAME};
-                for (String filename : badFiles)
-                {
-                    File file = new File(tessdataDir, filename);
-                    if (file.exists())
-                    {
-                        file.delete();
-                    }
-                }
-
-                Log.d(TAG, "Checking for OSD data (" + CaptureActivity.OSD_FILENAME_BASE
-                        + ".zip) in application assets...");
-                // Check for "osd.traineddata.zip"
-                osdInstallSuccess = installFromAssets(CaptureActivity.OSD_FILENAME_BASE + ".zip",
-                                                      tessdataDir, new File(CaptureActivity.OSD_FILENAME));
-            }
-            catch (IOException e)
-            {
-                Log.e(TAG, "IOException", e);
-            }
-            catch (Exception e)
-            {
-                Log.e(TAG, "Got exception", e);
-            }
-        }
-        else
-        {
-            Log.d(TAG, "OSD file already present in " + tessdataDir.toString());
-            osdInstallSuccess = true;
         }
 
         // Dismiss the progress dialog box, revealing the indeterminate dialog box behind it
@@ -251,7 +180,7 @@ final class OcrInitAsyncTask extends AsyncTask<String, String, Boolean>
         // Initialize the OCR engine
         if (baseApi.init(destinationDirBase + File.separator, languageCode, ocrEngineMode))
         {
-            return true;
+            return installSuccess;
         }
         return false;
     }

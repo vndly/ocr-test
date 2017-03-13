@@ -176,11 +176,6 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
      */
     static final String OSD_FILENAME_BASE = "osd.traineddata";
 
-    /**
-     * Minimum mean confidence score necessary to not reject single-shot OCR result. Currently unused.
-     */
-    static final int MINIMUM_MEAN_CONFIDENCE = 0; // 0 means don't reject any scored results
-
     // Context menu
     private static final int SETTINGS_ID = Menu.FIRST;
 
@@ -208,15 +203,11 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
     private TessBaseAPI baseApi; // Java interface for the Tesseract OCR engine
     private String sourceLanguageCodeOcr; // ISO 639-3 language code
     private String sourceLanguageReadable; // Language name, for example, "English"
-    private String sourceLanguageCodeTranslation; // ISO 639-1 language code
-    private String targetLanguageCodeTranslation; // ISO 639-1 language code
-    private String targetLanguageReadable; // Language name, for example, "English"
     private int pageSegmentationMode = TessBaseAPI.PageSegMode.PSM_AUTO_OSD;
     private int ocrEngineMode = TessBaseAPI.OEM_TESSERACT_ONLY;
     private String characterBlacklist;
     private String characterWhitelist;
     private Button shutterButton;
-    private boolean isTranslationActive; // Whether we want to show translations
     private boolean isContinuousModeActive; // Whether we are doing OCR in continuous mode
     private SharedPreferences prefs;
     private OnSharedPreferenceChangeListener listener;
@@ -720,18 +711,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
     private boolean setSourceLanguage(String languageCode)
     {
         sourceLanguageCodeOcr = languageCode;
-        sourceLanguageCodeTranslation = LanguageCodeHelper.mapLanguageCode(languageCode);
         sourceLanguageReadable = LanguageCodeHelper.getOcrLanguageName(this, languageCode);
-        return true;
-    }
-
-    /**
-     * Sets the necessary language code values for the translation target language.
-     */
-    private boolean setTargetLanguage(String languageCode)
-    {
-        targetLanguageCodeTranslation = languageCode;
-        targetLanguageReadable = LanguageCodeHelper.getTranslationLanguageName(this, languageCode);
         return true;
     }
 
@@ -1255,8 +1235,6 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
         // Retrieve from preferences, and set in this Activity, the language preferences
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
         setSourceLanguage(prefs.getString(PreferencesActivity.KEY_SOURCE_LANGUAGE_PREFERENCE, CaptureActivity.DEFAULT_SOURCE_LANGUAGE_CODE));
-        setTargetLanguage(prefs.getString(PreferencesActivity.KEY_TARGET_LANGUAGE_PREFERENCE, CaptureActivity.DEFAULT_TARGET_LANGUAGE_CODE));
-        isTranslationActive = prefs.getBoolean(PreferencesActivity.KEY_TOGGLE_TRANSLATION, false);
 
         // Retrieve from preferences, and set in this Activity, the capture mode preference
         if (prefs.getBoolean(PreferencesActivity.KEY_CONTINUOUS_PREVIEW, CaptureActivity.DEFAULT_TOGGLE_CONTINUOUS))

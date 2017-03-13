@@ -51,6 +51,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnTouchListener;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -114,11 +115,6 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
     public static final boolean DEFAULT_DISABLE_CONTINUOUS_FOCUS = true;
 
     /**
-     * Whether to beep by default when the shutter button is pressed.
-     */
-    public static final boolean DEFAULT_TOGGLE_BEEP = false;
-
-    /**
      * Whether to initially show a looping, real-time OCR display.
      */
     public static final boolean DEFAULT_TOGGLE_CONTINUOUS = false;
@@ -148,11 +144,6 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
      * Flag to display recognition-related statistics on the scanning screen.
      */
     private static final boolean CONTINUOUS_DISPLAY_METADATA = true;
-
-    /**
-     * Flag to enable display of the on-screen shutter button.
-     */
-    private static final boolean DISPLAY_SHUTTER_BUTTON = true;
 
     /**
      * Languages for which Cube data is available.
@@ -214,7 +205,6 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
     private OcrResult lastResult;
     private Bitmap lastBitmap;
     private boolean hasSurface;
-    private BeepManager beepManager;
     private TessBaseAPI baseApi; // Java interface for the Tesseract OCR engine
     private String sourceLanguageCodeOcr; // ISO 639-3 language code
     private String sourceLanguageReadable; // Language name, for example, "English"
@@ -279,33 +269,42 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
         handler = null;
         lastResult = null;
         hasSurface = false;
-        beepManager = new BeepManager(this);
 
         // Camera shutter button
-        if (DISPLAY_SHUTTER_BUTTON)
+        shutterButton = (Button) findViewById(R.id.shutter_button);
+        shutterButton.setOnTouchListener(new OnTouchListener()
         {
-            shutterButton = (Button) findViewById(R.id.shutter_button);
-            shutterButton.setOnClickListener(new OnClickListener()
+            @Override
+            public boolean onTouch(View v, MotionEvent event)
             {
-                @Override
-                public void onClick(View v)
+                switch (event.getAction())
                 {
-                    if (isContinuousModeActive)
-                    {
-                        onShutterButtonPressContinuous();
-                    }
-                    else
-                    {
-                        if (handler != null)
-                        {
-                            handler.shutterButtonClick();
-                        }
-                    }
-
-                    //requestDelayedAutoFocus();
+                    case MotionEvent.ACTION_DOWN:
+                        requestDelayedAutoFocus();
+                        break;
                 }
-            });
-        }
+
+                return false;
+            }
+        });
+        shutterButton.setOnClickListener(new OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                if (isContinuousModeActive)
+                {
+                    onShutterButtonPressContinuous();
+                }
+                else
+                {
+                    if (handler != null)
+                    {
+                        handler.shutterButtonClick();
+                    }
+                }
+            }
+        });
 
         ocrResultView = (TextView) findViewById(R.id.ocr_result_text_view);
         registerForContextMenu(ocrResultView);
@@ -505,7 +504,6 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
     {
         isPaused = true;
         handler.stop();
-        beepManager.playBeepSoundAndVibrate();
         if (lastResult != null)
         {
             handleOcrDecode(lastResult);
@@ -530,7 +528,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
         setStatusViewForContinuous();
         DecodeHandler.resetDecodeState();
         handler.resetState();
-        if (shutterButton != null && DISPLAY_SHUTTER_BUTTON)
+        if (shutterButton != null)
         {
             shutterButton.setVisibility(View.VISIBLE);
         }
@@ -1118,10 +1116,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
         }
         viewfinderView.setVisibility(View.VISIBLE);
         cameraButtonView.setVisibility(View.VISIBLE);
-        if (DISPLAY_SHUTTER_BUTTON)
-        {
-            shutterButton.setVisibility(View.VISIBLE);
-        }
+        shutterButton.setVisibility(View.VISIBLE);
         lastResult = null;
         viewfinderView.removeResultText();
     }
@@ -1152,7 +1147,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
     @SuppressWarnings("unused")
     void setButtonVisibility(boolean visible)
     {
-        if (shutterButton != null && visible == true && DISPLAY_SHUTTER_BUTTON)
+        if (shutterButton != null && visible)
         {
             shutterButton.setVisibility(View.VISIBLE);
         }
@@ -1334,8 +1329,6 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
         characterWhitelist = OcrCharacterHelper.getWhitelist(prefs, sourceLanguageCodeOcr);
 
         prefs.registerOnSharedPreferenceChangeListener(listener);
-
-        beepManager.updatePrefs();
     }
 
     /**
@@ -1368,9 +1361,6 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
 
         // Disable problematic focus modes
         prefs.edit().putBoolean(PreferencesActivity.KEY_DISABLE_CONTINUOUS_FOCUS, CaptureActivity.DEFAULT_DISABLE_CONTINUOUS_FOCUS).commit();
-
-        // Beep
-        prefs.edit().putBoolean(PreferencesActivity.KEY_PLAY_BEEP, CaptureActivity.DEFAULT_TOGGLE_BEEP).commit();
 
         // Character blacklist
         prefs.edit().putString(PreferencesActivity.KEY_CHARACTER_BLACKLIST,

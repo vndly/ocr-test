@@ -51,10 +51,6 @@
 	        android:key="preferences_disable_continuous_focus"
 	        android:defaultValue="true"
 	        android:title="Standard focus mode" />
-	    
-	    <CheckBoxPreference
-            android:key="preferences_play_beep"
-            android:title="Beep"/>
 	    	    
         <EditTextPreference android:key="preference_character_blacklist"
             android:title="Character blacklist"/>

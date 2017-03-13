@@ -44,7 +44,6 @@ import android.widget.Toast;
 
 import com.googlecode.tesseract.android.TessBaseAPI;
 import com.mauriciotogneri.ocrtest.camera.CameraManager;
-import com.mauriciotogneri.ocrtest.language.LanguageCodeHelper;
 
 import java.io.File;
 import java.io.IOException;
@@ -66,11 +65,6 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
      * ISO 639-3 language code indicating the default recognition language.
      */
     public static final String DEFAULT_SOURCE_LANGUAGE_CODE = "eng";
-
-    /**
-     * ISO 639-1 language code indicating the default target language for translation.
-     */
-    public static final String DEFAULT_TARGET_LANGUAGE_CODE = "es";
 
     /**
      * The default online machine translation service to use.
@@ -694,7 +688,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
     private boolean setSourceLanguage(String languageCode)
     {
         sourceLanguageCodeOcr = languageCode;
-        sourceLanguageReadable = LanguageCodeHelper.getOcrLanguageName(this, languageCode);
+        sourceLanguageReadable = DEFAULT_SOURCE_LANGUAGE_CODE;
         return true;
     }
 
@@ -1307,9 +1301,6 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
 
         // Translation
         prefs.edit().putBoolean(PreferencesActivity.KEY_TOGGLE_TRANSLATION, CaptureActivity.DEFAULT_TOGGLE_TRANSLATION).commit();
-
-        // Translation target language
-        prefs.edit().putString(PreferencesActivity.KEY_TARGET_LANGUAGE_PREFERENCE, CaptureActivity.DEFAULT_TARGET_LANGUAGE_CODE).commit();
 
         // Translator
         prefs.edit().putString(PreferencesActivity.KEY_TRANSLATOR, CaptureActivity.DEFAULT_TRANSLATOR).commit();

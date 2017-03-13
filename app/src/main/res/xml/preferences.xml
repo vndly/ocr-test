@@ -1,34 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-	<!-- GENERAL SETTINGS -->
-	<PreferenceCategory android:title="General settings">
-
-		<CheckBoxPreference android:key="preference_capture_continuous"
-			android:title="Continuous preview"/>
-
-		<ListPreference android:title="Recognize"
-			android:key="sourceLanguageCodeOcrPref"/>
-			
-	</PreferenceCategory>
-
-	<!-- TRANSLATION SETTINGS -->
-	<PreferenceCategory android:title="Translation settings">
-
-		<CheckBoxPreference android:key="preference_translation_toggle_translation"
-			android:title="Translate"/>
-
-		<ListPreference android:key="targetLanguageCodeTranslationPref"  
-			android:title="Translate to"
-			android:dependency="preference_translation_toggle_translation"/>
-			
-		<ListPreference android:key="preference_translator" 
-			android:title="Translator"
-		    android:dependency="preference_translation_toggle_translation"/>
-						
-	</PreferenceCategory>
-
-	<!-- ADVANCED SETTINGS -->
 	<PreferenceCategory android:title="Advanced settings">
 
 	    <ListPreference android:key="preference_ocr_engine_mode"
@@ -49,20 +21,9 @@
         <EditTextPreference android:key="preference_character_whitelist"
             android:title="Character whitelist"/>
 
-<!-- 
-		<CheckBoxPreference
-		    android:key="preference_toggle_light"
-		    android:title="Light"/>
--->
-
 	    <ListPreference android:key="preference_page_segmentation_mode"
 			android:title="Page segmentation"/>
 
-	    <CheckBoxPreference
-            android:key="preferences_reverse_image"
-            android:title="Reversed camera image"
-            android:summary="(For devices with only a front camera)"/>
-	    
 	</PreferenceCategory>
 	
 </PreferenceScreen>

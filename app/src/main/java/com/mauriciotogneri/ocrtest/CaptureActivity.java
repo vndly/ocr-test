@@ -879,12 +879,12 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
         int scaledSize = Math.max(22, 32 - ocrResult.getText().length() / 4);
         ocrResultTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, scaledSize);
 
-        TextView translationLanguageLabelTextView = (TextView) findViewById(R.id.translation_language_label_text_view);
-        TextView translationLanguageTextView = (TextView) findViewById(R.id.translation_language_text_view);
+        //TextView translationLanguageLabelTextView = (TextView) findViewById(R.id.translation_language_label_text_view);
+        //TextView translationLanguageTextView = (TextView) findViewById(R.id.translation_language_text_view);
         TextView translationTextView = (TextView) findViewById(R.id.translation_text_view);
 
-        translationLanguageLabelTextView.setVisibility(View.GONE);
-        translationLanguageTextView.setVisibility(View.GONE);
+        //translationLanguageLabelTextView.setVisibility(View.GONE);
+        //translationLanguageTextView.setVisibility(View.GONE);
         translationTextView.setVisibility(View.GONE);
         progressView.setVisibility(View.GONE);
         setProgressBarVisibility(false);
@@ -1280,8 +1280,8 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
         }
 
         // Retrieve from preferences, and set in this Activity, the character blacklist and whitelist
-        characterBlacklist = OcrCharacterHelper.getBlacklist(prefs, sourceLanguageCodeOcr);
-        characterWhitelist = OcrCharacterHelper.getWhitelist(prefs, sourceLanguageCodeOcr);
+        characterBlacklist = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmopqrstuvwxyz"; //OcrCharacterHelper.getBlacklist(prefs, sourceLanguageCodeOcr);
+        characterWhitelist = "0123456789"; //OcrCharacterHelper.getWhitelist(prefs, sourceLanguageCodeOcr);
 
         prefs.registerOnSharedPreferenceChangeListener(listener);
     }
@@ -1313,14 +1313,6 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
 
         // Disable problematic focus modes
         prefs.edit().putBoolean(PreferencesActivity.KEY_DISABLE_CONTINUOUS_FOCUS, CaptureActivity.DEFAULT_DISABLE_CONTINUOUS_FOCUS).commit();
-
-        // Character blacklist
-        prefs.edit().putString(PreferencesActivity.KEY_CHARACTER_BLACKLIST,
-                               OcrCharacterHelper.getDefaultBlacklist(CaptureActivity.DEFAULT_SOURCE_LANGUAGE_CODE)).commit();
-
-        // Character whitelist
-        prefs.edit().putString(PreferencesActivity.KEY_CHARACTER_WHITELIST,
-                               OcrCharacterHelper.getDefaultWhitelist(CaptureActivity.DEFAULT_SOURCE_LANGUAGE_CODE)).commit();
 
         // Page segmentation mode
         prefs.edit().putString(PreferencesActivity.KEY_PAGE_SEGMENTATION_MODE, CaptureActivity.DEFAULT_PAGE_SEGMENTATION_MODE).commit();

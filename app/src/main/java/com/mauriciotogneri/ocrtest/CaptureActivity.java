@@ -16,15 +16,11 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.KeyEvent;
-import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
-import android.view.View.OnClickListener;
-import android.view.View.OnTouchListener;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -52,7 +48,6 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
     private final String sourceLanguageCodeOcr = Configuration.DEFAULT_SOURCE_LANGUAGE_CODE;
     private final boolean isContinuousModeActive = Configuration.DEFAULT_TOGGLE_CONTINUOUS;
 
-    private Button shutterButton;
     private ProgressDialog dialog; // for initOcr - language download & unzip
     private ProgressDialog indeterminateDialog; // also for initOcr - init OCR engine
     private boolean isEngineReady;
@@ -93,42 +88,6 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
         handler = null;
         lastResult = null;
         hasSurface = false;
-
-        // Camera shutter button
-        shutterButton = (Button) findViewById(R.id.shutter_button);
-        shutterButton.setOnTouchListener(new OnTouchListener()
-        {
-            @Override
-            public boolean onTouch(View v, MotionEvent event)
-            {
-                switch (event.getAction())
-                {
-                    case MotionEvent.ACTION_DOWN:
-                        requestDelayedAutoFocus();
-                        break;
-                }
-
-                return false;
-            }
-        });
-        shutterButton.setOnClickListener(new OnClickListener()
-        {
-            @Override
-            public void onClick(View v)
-            {
-                if (isContinuousModeActive)
-                {
-                    onShutterButtonPressContinuous();
-                }
-                else
-                {
-                    if (handler != null)
-                    {
-                        handler.shutterButtonClick();
-                    }
-                }
-            }
-        });
 
         TextView ocrResultView = (TextView) findViewById(R.id.ocr_result_text_view);
         registerForContextMenu(ocrResultView);
@@ -239,10 +198,6 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
         setStatusViewForContinuous();
         DecodeHandler.resetDecodeState();
         handler.resetState();
-        if (shutterButton != null)
-        {
-            shutterButton.setVisibility(View.VISIBLE);
-        }
     }
 
     @Override
@@ -498,7 +453,6 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
         }
 
         // Turn off capture-related UI elements
-        shutterButton.setVisibility(View.GONE);
         statusViewBottom.setVisibility(View.GONE);
         statusViewTop.setVisibility(View.GONE);
         cameraButtonView.setVisibility(View.GONE);
@@ -658,7 +612,6 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
             statusViewTop.setVisibility(View.VISIBLE);
         }
         cameraButtonView.setVisibility(View.VISIBLE);
-        shutterButton.setVisibility(View.VISIBLE);
         lastResult = null;
     }
 
@@ -672,41 +625,6 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
         {
             statusViewBottom.setText("OCR: " + sourceLanguageCodeOcr + " - waiting for OCR...");
         }
-    }
-
-    @SuppressWarnings("unused")
-    void setButtonVisibility(boolean visible)
-    {
-        if (shutterButton != null && visible)
-        {
-            shutterButton.setVisibility(View.VISIBLE);
-        }
-        else if (shutterButton != null)
-        {
-            shutterButton.setVisibility(View.GONE);
-        }
-    }
-
-    /**
-     * Enables/disables the shutter button to prevent double-clicks on the button.
-     *
-     * @param clickable True if the button should accept a click
-     */
-    void setShutterButtonClickable(boolean clickable)
-    {
-        shutterButton.setClickable(clickable);
-    }
-
-    /**
-     * Requests autofocus after a 350 ms delay. This delay prevents requesting focus when the user
-     * just wants to click the shutter button without focusing. Quick button press/release will
-     * trigger onShutterButtonClick() before the focus kicks in.
-     */
-    private void requestDelayedAutoFocus()
-    {
-        // Wait 350 ms before focusing to avoid interfering with quick button presses when
-        // the user just wants to take a picture without focusing.
-        cameraManager.requestAutoFocus(350L);
     }
 
     public void displayProgressDialog()

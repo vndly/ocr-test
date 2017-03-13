@@ -16,12 +16,9 @@
  */
 package com.mauriciotogneri.ocrtest;
 
-import android.content.SharedPreferences;
-import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.PreferenceActivity;
-import android.preference.PreferenceManager;
 
 /**
  * Class to handle preferences that are saved across sessions of the app. Shows
@@ -31,8 +28,7 @@ import android.preference.PreferenceManager;
  * <p>
  * The code for this class was adapted from the ZXing project: http://code.google.com/p/zxing
  */
-public class PreferencesActivity extends PreferenceActivity implements
-        OnSharedPreferenceChangeListener
+public class PreferencesActivity extends PreferenceActivity
 {
 
     // Preference keys not carried over from ZXing project
@@ -58,15 +54,12 @@ public class PreferencesActivity extends PreferenceActivity implements
     private ListPreference listPreferenceOcrEngineMode;
     private ListPreference listPreferencePageSegmentationMode;
 
-    private static SharedPreferences sharedPreferences;
-
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.preferences);
 
-        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         listPreferenceOcrEngineMode = (ListPreference) getPreferenceScreen().findPreference(KEY_OCR_ENGINE_MODE);
         listPreferencePageSegmentationMode = (ListPreference) getPreferenceScreen().findPreference(KEY_PAGE_SEGMENTATION_MODE);
     }
@@ -79,19 +72,18 @@ public class PreferencesActivity extends PreferenceActivity implements
      * @param sharedPreferences the Android.content.SharedPreferences that received the change
      * @param key               the key of the preference that was changed, added, or removed
      */
-    @Override
-    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
-                                          String key)
-    {
-        if (key.equals(KEY_PAGE_SEGMENTATION_MODE))
-        {
-            listPreferencePageSegmentationMode.setSummary(sharedPreferences.getString(key, CaptureActivity.DEFAULT_PAGE_SEGMENTATION_MODE));
-        }
-        else if (key.equals(KEY_OCR_ENGINE_MODE))
-        {
-            listPreferenceOcrEngineMode.setSummary(sharedPreferences.getString(key, CaptureActivity.DEFAULT_OCR_ENGINE_MODE));
-        }
-    }
+    //    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
+    //                                          String key)
+    //    {
+    //        if (key.equals(KEY_PAGE_SEGMENTATION_MODE))
+    //        {
+    //            listPreferencePageSegmentationMode.setSummary(sharedPreferences.getString(key, CaptureActivity.DEFAULT_PAGE_SEGMENTATION_MODE));
+    //        }
+    //        else if (key.equals(KEY_OCR_ENGINE_MODE))
+    //        {
+    //            listPreferenceOcrEngineMode.setSummary(sharedPreferences.getString(key, CaptureActivity.DEFAULT_OCR_ENGINE_MODE));
+    //        }
+    //    }
 
     /**
      * Sets up initial preference summary text
@@ -101,12 +93,8 @@ public class PreferencesActivity extends PreferenceActivity implements
     protected void onResume()
     {
         super.onResume();
-        // Set up the initial summary values
-        listPreferencePageSegmentationMode.setSummary(sharedPreferences.getString(KEY_PAGE_SEGMENTATION_MODE, CaptureActivity.DEFAULT_PAGE_SEGMENTATION_MODE));
-        listPreferenceOcrEngineMode.setSummary(sharedPreferences.getString(KEY_OCR_ENGINE_MODE, CaptureActivity.DEFAULT_OCR_ENGINE_MODE));
-
         // Set up a listener whenever a key changes
-        getPreferenceScreen().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
+        //getPreferenceScreen().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
     }
 
     /**
@@ -117,6 +105,6 @@ public class PreferencesActivity extends PreferenceActivity implements
     protected void onPause()
     {
         super.onPause();
-        getPreferenceScreen().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
+        //getPreferenceScreen().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
     }
 }

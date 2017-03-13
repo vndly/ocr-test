@@ -18,12 +18,8 @@
 package com.mauriciotogneri.ocrtest.camera;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.hardware.Camera;
-import android.preference.PreferenceManager;
 import android.util.Log;
-
-import com.mauriciotogneri.ocrtest.PreferencesActivity;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -56,11 +52,8 @@ public final class AutoFocusManager implements Camera.AutoFocusCallback
     {
         this.camera = camera;
         timer = new Timer(true);
-        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         String currentFocusMode = camera.getParameters().getFocusMode();
-        useAutoFocus =
-                sharedPrefs.getBoolean(PreferencesActivity.KEY_AUTO_FOCUS, true) &&
-                        FOCUS_MODES_CALLING_AF.contains(currentFocusMode);
+        useAutoFocus = true;
         Log.i(TAG, "Current focus mode '" + currentFocusMode + "'; use auto focus? " + useAutoFocus);
         manual = false;
         checkAndStart();

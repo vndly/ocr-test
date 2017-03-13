@@ -1,16 +1,13 @@
 package com.mauriciotogneri.ocrtest.camera;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.hardware.Camera;
 import android.os.Handler;
-import android.preference.PreferenceManager;
 import android.view.SurfaceHolder;
 
 import com.mauriciotogneri.ocrtest.PlanarYUVLuminanceSource;
-import com.mauriciotogneri.ocrtest.PreferencesActivity;
 
 import java.io.IOException;
 
@@ -87,8 +84,7 @@ public final class CameraManager
         }
         configManager.setDesiredCameraParameters(theCamera);
 
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-        reverseImage = prefs.getBoolean(PreferencesActivity.KEY_REVERSE_IMAGE, false);
+        reverseImage = false;
     }
 
     /**

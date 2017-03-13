@@ -4,10 +4,6 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -15,7 +11,6 @@ import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
-import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.text.ClipboardManager;
 import android.text.SpannableStringBuilder;
@@ -54,11 +49,6 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
      * ISO 639-3 language code indicating the default recognition language.
      */
     public static final String DEFAULT_SOURCE_LANGUAGE_CODE = "eng";
-
-    /**
-     * The default online machine translation service to use.
-     */
-    public static final String DEFAULT_TRANSLATOR = "Google Translate";
 
     /**
      * The default OCR engine to use.
@@ -170,18 +160,15 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
     private String sourceLanguageCodeOcr; // ISO 639-3 language code
     private String sourceLanguageReadable; // Language name, for example, "English"
     private int pageSegmentationMode = TessBaseAPI.PageSegMode.PSM_AUTO_OSD;
-    private int ocrEngineMode = TessBaseAPI.OEM_TESSERACT_ONLY;
+    private final int ocrEngineMode = TessBaseAPI.OEM_TESSERACT_ONLY;
     private String characterBlacklist;
     private String characterWhitelist;
     private Button shutterButton;
     private boolean isContinuousModeActive; // Whether we are doing OCR in continuous mode
-    private SharedPreferences prefs;
-    private OnSharedPreferenceChangeListener listener;
     private ProgressDialog dialog; // for initOcr - language download & unzip
     private ProgressDialog indeterminateDialog; // also for initOcr - init OCR engine
     private boolean isEngineReady;
     private boolean isPaused;
-    private static boolean isFirstLaunch; // True if this is the first time the app is being run
 
     Handler getHandler()
     {
@@ -202,13 +189,6 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
     public void onCreate(Bundle icicle)
     {
         super.onCreate(icicle);
-
-        checkFirstLaunch();
-
-        if (isFirstLaunch)
-        {
-            setDefaultPreferences();
-        }
 
         Window window = getWindow();
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -752,39 +732,6 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
         }
         dialog = new ProgressDialog(this);
 
-        // If we have a language that only runs using Cube, then set the ocrEngineMode to Cube
-        if (ocrEngineMode != TessBaseAPI.OEM_CUBE_ONLY)
-        {
-            for (String s : CUBE_REQUIRED_LANGUAGES)
-            {
-                if (s.equals(languageCode))
-                {
-                    ocrEngineMode = TessBaseAPI.OEM_CUBE_ONLY;
-                    SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-                    prefs.edit().putString(PreferencesActivity.KEY_OCR_ENGINE_MODE, getOcrEngineModeName()).commit();
-                }
-            }
-        }
-
-        // If our language doesn't support Cube, then set the ocrEngineMode to Tesseract
-        if (ocrEngineMode != TessBaseAPI.OEM_TESSERACT_ONLY)
-        {
-            boolean cubeOk = false;
-            for (String s : CUBE_SUPPORTED_LANGUAGES)
-            {
-                if (s.equals(languageCode))
-                {
-                    cubeOk = true;
-                }
-            }
-            if (!cubeOk)
-            {
-                ocrEngineMode = TessBaseAPI.OEM_TESSERACT_ONLY;
-                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-                prefs.edit().putString(PreferencesActivity.KEY_OCR_ENGINE_MODE, getOcrEngineModeName()).commit();
-            }
-        }
-
         // Display the name of the OCR engine we're initializing in the indeterminate progress dialog box
         indeterminateDialog = new ProgressDialog(this);
         indeterminateDialog.setTitle("Please wait");
@@ -811,8 +758,6 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
         {
             Log.d(getClass().getName(), "Disabling continuous preview");
             isContinuousModeActive = false;
-            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-            prefs.edit().putBoolean(PreferencesActivity.KEY_CONTINUOUS_PREVIEW, false);
         }
 
         // Start AsyncTask to install language data and init OCR
@@ -1123,40 +1068,6 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
         cameraManager.requestAutoFocus(350L);
     }
 
-    static boolean getFirstLaunch()
-    {
-        return isFirstLaunch;
-    }
-
-    /**
-     * We want the help screen to be shown automatically the first time a new version of the app is
-     * run. The easiest way to do this is to check android:versionCode from the manifest, and compare
-     * it to a value stored as a preference.
-     */
-    private boolean checkFirstLaunch()
-    {
-        try
-        {
-            PackageInfo info = getPackageManager().getPackageInfo(getPackageName(), 0);
-            int currentVersion = info.versionCode;
-            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-            int lastVersion = prefs.getInt(PreferencesActivity.KEY_HELP_VERSION_SHOWN, 0);
-            if (lastVersion == 0)
-            {
-                isFirstLaunch = true;
-            }
-            else
-            {
-                isFirstLaunch = false;
-            }
-        }
-        catch (PackageManager.NameNotFoundException e)
-        {
-            Log.w(getClass().getName(), e);
-        }
-        return false;
-    }
-
     /**
      * Returns a string that represents which OCR engine(s) are currently set to be run.
      *
@@ -1181,19 +1092,13 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
         return ocrEngineModeName;
     }
 
-    /**
-     * Gets values from shared preferences and sets the corresponding data members in this activity.
-     */
     private void retrievePreferences()
     {
-        prefs = PreferenceManager.getDefaultSharedPreferences(this);
-
         // Retrieve from preferences, and set in this Activity, the language preferences
-        PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
-        setSourceLanguage(prefs.getString(PreferencesActivity.KEY_SOURCE_LANGUAGE_PREFERENCE, CaptureActivity.DEFAULT_SOURCE_LANGUAGE_CODE));
+        setSourceLanguage(CaptureActivity.DEFAULT_SOURCE_LANGUAGE_CODE);
 
         // Retrieve from preferences, and set in this Activity, the capture mode preference
-        if (prefs.getBoolean(PreferencesActivity.KEY_CONTINUOUS_PREVIEW, CaptureActivity.DEFAULT_TOGGLE_CONTINUOUS))
+        if (CaptureActivity.DEFAULT_TOGGLE_CONTINUOUS)
         {
             isContinuousModeActive = true;
         }
@@ -1204,7 +1109,7 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
 
         // Retrieve from preferences, and set in this Activity, the page segmentation mode preference
         String[] pageSegmentationModes = new String[] {"Auto"};//getResources().getStringArray(R.array.pagesegmentationmodes);
-        String pageSegmentationModeName = prefs.getString(PreferencesActivity.KEY_PAGE_SEGMENTATION_MODE, pageSegmentationModes[0]);
+        String pageSegmentationModeName = pageSegmentationModes[0];
         if (pageSegmentationModeName.equals(pageSegmentationModes[0]))
         {
             pageSegmentationMode = TessBaseAPI.PageSegMode.PSM_AUTO_OSD;
@@ -1244,8 +1149,8 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
 
         // Retrieve from preferences, and set in this Activity, the OCR engine mode
         String[] ocrEngineModes = new String[] {"Tesseract", "Cube", "Both"};//getResources().getStringArray(R.array.ocrenginemodes);
-        String ocrEngineModeName = prefs.getString(PreferencesActivity.KEY_OCR_ENGINE_MODE, ocrEngineModes[0]);
-        if (ocrEngineModeName.equals(ocrEngineModes[0]))
+        String ocrEngineModeName = ocrEngineModes[0];
+        /*if (ocrEngineModeName.equals(ocrEngineModes[0]))
         {
             ocrEngineMode = TessBaseAPI.OEM_TESSERACT_ONLY;
         }
@@ -1256,51 +1161,11 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
         else if (ocrEngineModeName.equals(ocrEngineModes[2]))
         {
             ocrEngineMode = TessBaseAPI.OEM_TESSERACT_CUBE_COMBINED;
-        }
+        }*/
 
         // Retrieve from preferences, and set in this Activity, the character blacklist and whitelist
         characterBlacklist = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmopqrstuvwxyz";
         characterWhitelist = "0123456789";
-
-        prefs.registerOnSharedPreferenceChangeListener(listener);
-    }
-
-    /**
-     * Sets default values for preferences. To be called the first time this app is run.
-     */
-    private void setDefaultPreferences()
-    {
-        prefs = PreferenceManager.getDefaultSharedPreferences(this);
-
-        // Continuous preview
-        prefs.edit().putBoolean(PreferencesActivity.KEY_CONTINUOUS_PREVIEW, CaptureActivity.DEFAULT_TOGGLE_CONTINUOUS).commit();
-
-        // Recognition language
-        prefs.edit().putString(PreferencesActivity.KEY_SOURCE_LANGUAGE_PREFERENCE, CaptureActivity.DEFAULT_SOURCE_LANGUAGE_CODE).commit();
-
-        // Translation
-        prefs.edit().putBoolean(PreferencesActivity.KEY_TOGGLE_TRANSLATION, CaptureActivity.DEFAULT_TOGGLE_TRANSLATION).commit();
-
-        // Translator
-        prefs.edit().putString(PreferencesActivity.KEY_TRANSLATOR, CaptureActivity.DEFAULT_TRANSLATOR).commit();
-
-        // OCR Engine
-        prefs.edit().putString(PreferencesActivity.KEY_OCR_ENGINE_MODE, CaptureActivity.DEFAULT_OCR_ENGINE_MODE).commit();
-
-        // Autofocus
-        prefs.edit().putBoolean(PreferencesActivity.KEY_AUTO_FOCUS, CaptureActivity.DEFAULT_TOGGLE_AUTO_FOCUS).commit();
-
-        // Disable problematic focus modes
-        prefs.edit().putBoolean(PreferencesActivity.KEY_DISABLE_CONTINUOUS_FOCUS, CaptureActivity.DEFAULT_DISABLE_CONTINUOUS_FOCUS).commit();
-
-        // Page segmentation mode
-        prefs.edit().putString(PreferencesActivity.KEY_PAGE_SEGMENTATION_MODE, CaptureActivity.DEFAULT_PAGE_SEGMENTATION_MODE).commit();
-
-        // Reversed camera image
-        prefs.edit().putBoolean(PreferencesActivity.KEY_REVERSE_IMAGE, CaptureActivity.DEFAULT_TOGGLE_REVERSED_IMAGE).commit();
-
-        // Light
-        prefs.edit().putBoolean(PreferencesActivity.KEY_TOGGLE_LIGHT, CaptureActivity.DEFAULT_TOGGLE_LIGHT).commit();
     }
 
     void displayProgressDialog()

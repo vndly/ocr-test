@@ -40,7 +40,6 @@ import com.googlecode.tesseract.android.TessBaseAPI;
 import com.mauriciotogneri.ocrtest.camera.CameraManager;
 
 import java.io.File;
-import java.io.IOException;
 
 // https://github.com/rmtheis/android-ocr
 public final class CaptureActivity extends AppCompatActivity implements SurfaceHolder.Callback
@@ -312,14 +311,8 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
             handler = new CaptureActivityHandler(this, cameraManager, isContinuousModeActive);
 
         }
-        catch (IOException ioe)
+        catch (Exception ioe)
         {
-            showErrorMessage("Error", "Could not initialize camera. Please try restarting device.");
-        }
-        catch (RuntimeException e)
-        {
-            // Barcode Scanner has seen crashes in the wild of this variety:
-            // java.?lang.?RuntimeException: Fail to connect to camera service
             showErrorMessage("Error", "Could not initialize camera. Please try restarting device.");
         }
     }

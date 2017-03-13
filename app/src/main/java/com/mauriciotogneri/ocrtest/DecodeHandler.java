@@ -1,20 +1,3 @@
-/*
- * Copyright (C) 2010 ZXing authors
- * Copyright 2011 Robert Theis
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.mauriciotogneri.ocrtest;
 
 import android.graphics.Bitmap;
@@ -173,24 +156,6 @@ final class DecodeHandler extends Handler
             ocrResult = new OcrResult();
             ocrResult.setWordConfidences(baseApi.wordConfidences());
             ocrResult.setMeanConfidence(baseApi.meanConfidence());
-            /*if (ViewfinderView.DRAW_REGION_BOXES)
-            {
-                Pixa regions = baseApi.getRegions();
-                ocrResult.setRegionBoundingBoxes(regions.getBoxRects());
-                regions.recycle();
-            }*/
-            //if (ViewfinderView.DRAW_TEXTLINE_BOXES)
-            //{
-                Pixa textlines = baseApi.getTextlines();
-                ocrResult.setTextlineBoundingBoxes(textlines.getBoxRects());
-                textlines.recycle();
-            //}
-            /*if (ViewfinderView.DRAW_STRIP_BOXES)
-            {
-                Pixa strips = baseApi.getStrips();
-                ocrResult.setStripBoundingBoxes(strips.getBoxRects());
-                strips.recycle();
-            }*/
 
             // Always get the word bounding boxes--we want it for annotating the bitmap after the user
             // presses the shutter button, in addition to maybe wanting to draw boxes/words during the

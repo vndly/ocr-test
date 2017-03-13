@@ -33,8 +33,6 @@
 
         </activity>
 
-        <activity android:name="com.mauriciotogneri.ocrtest.PreferencesActivity" />
-
     </application>
 
 </manifest>

@@ -662,7 +662,6 @@ final class OcrInitAsyncTask extends AsyncTask<String, String, Boolean>
         {
             // Restart recognition
             activity.resumeOCR();
-            activity.showLanguageName();
         }
         else
         {

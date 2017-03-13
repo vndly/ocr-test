@@ -1,6 +1,5 @@
 package com.mauriciotogneri.ocrtest;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -17,6 +16,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.preference.PreferenceManager;
+import android.support.v7.app.AppCompatActivity;
 import android.text.ClipboardManager;
 import android.text.SpannableStringBuilder;
 import android.text.style.CharacterStyle;
@@ -55,7 +55,7 @@ import java.io.IOException;
  * <p>
  * The code for this class was adapted from the ZXing project: http://code.google.com/p/zxing/
  */
-public final class CaptureActivity extends Activity implements SurfaceHolder.Callback
+public final class CaptureActivity extends AppCompatActivity implements SurfaceHolder.Callback
 {
     private static final String TAG = CaptureActivity.class.getSimpleName();
 
@@ -1076,16 +1076,6 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
         shutterButton.setVisibility(View.VISIBLE);
         lastResult = null;
         viewfinderView.removeResultText();
-    }
-
-    /**
-     * Displays a pop-up message showing the name of the current OCR source language.
-     */
-    void showLanguageName()
-    {
-        Toast toast = Toast.makeText(this, "OCR: " + sourceLanguageReadable, Toast.LENGTH_LONG);
-        toast.setGravity(Gravity.TOP, 0, 0);
-        toast.show();
     }
 
     /**

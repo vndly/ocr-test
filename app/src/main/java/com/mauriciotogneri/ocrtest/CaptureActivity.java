@@ -1259,8 +1259,8 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
         }
 
         // Retrieve from preferences, and set in this Activity, the character blacklist and whitelist
-        characterBlacklist = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmopqrstuvwxyz"; //OcrCharacterHelper.getBlacklist(prefs, sourceLanguageCodeOcr);
-        characterWhitelist = "0123456789"; //OcrCharacterHelper.getWhitelist(prefs, sourceLanguageCodeOcr);
+        characterBlacklist = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmopqrstuvwxyz";
+        characterWhitelist = "0123456789";
 
         prefs.registerOnSharedPreferenceChangeListener(listener);
     }

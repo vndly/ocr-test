@@ -135,7 +135,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
     /**
      * Whether to enable the use of online translation services be default.
      */
-    public static final boolean DEFAULT_TOGGLE_TRANSLATION = true;
+    public static final boolean DEFAULT_TOGGLE_TRANSLATION = false;
 
     /**
      * Whether the light should be initially activated by default.

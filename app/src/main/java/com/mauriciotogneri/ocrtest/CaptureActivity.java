@@ -1,17 +1,17 @@
 package com.mauriciotogneri.ocrtest;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.text.SpannableStringBuilder;
 import android.text.style.CharacterStyle;
-import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -515,23 +515,65 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
         if (Configuration.CONTINUOUS_DISPLAY_RECOGNIZED_TEXT)
         {
             // Display the recognized text on the screen
-            statusViewTop.setText(ocrResult.getText());
+            /*statusViewTop.setText(ocrResult.getText());
             int scaledSize = Math.max(22, 32 - ocrResult.getText().length() / 4);
             statusViewTop.setTextSize(TypedValue.COMPLEX_UNIT_SP, scaledSize);
             statusViewTop.setTextColor(Color.BLACK);
             statusViewTop.setBackgroundResource(R.color.status_top_text_background);
 
-            statusViewTop.getBackground().setAlpha(meanConfidence * (255 / 100));
+            statusViewTop.getBackground().setAlpha(meanConfidence * (255 / 100));*/
+
+            String number = extractNumber(ocrResult.getText());
+
+            if (number != null)
+            {
+                //Toast.makeText(this, number, Toast.LENGTH_SHORT).show();
+                Intent data = new Intent();
+                data.putExtra("number", number);
+                setResult(Activity.RESULT_OK, data);
+
+                finish();
+            }
         }
 
         if (Configuration.CONTINUOUS_DISPLAY_METADATA)
         {
             // Display recognition-related metadata at the bottom of the screen
-            long recognitionTimeRequired = ocrResult.getRecognitionTimeRequired();
-            statusViewBottom.setTextSize(14);
-            statusViewBottom.setText("OCR: " + sourceLanguageCodeOcr + " - Mean confidence: " +
-                                             meanConfidence.toString() + " - Time required: " + recognitionTimeRequired + " ms");
+            //long recognitionTimeRequired = ocrResult.getRecognitionTimeRequired();
+            //statusViewBottom.setTextSize(14);
+            //statusViewBottom.setText("OCR: " + sourceLanguageCodeOcr + " - Mean confidence: " +
+            //                                 meanConfidence.toString() + " - Time required: " + recognitionTimeRequired + " ms");
         }
+    }
+
+    private String extractNumber(String text)
+    {
+        String[] parts = text.split("\\W+");
+
+        for (String part : parts)
+        {
+            String trimmed = part.trim();
+
+            if ((trimmed.length() == 20) && (isAllDigits(trimmed)))
+            {
+                return trimmed;
+            }
+        }
+
+        return null;
+    }
+
+    private boolean isAllDigits(String number)
+    {
+        for (int i = 0; i < number.length(); i++)
+        {
+            if (!Character.isDigit(number.charAt(i)))
+            {
+                return false;
+            }
+        }
+
+        return !number.isEmpty();
     }
 
     /**
@@ -549,10 +591,10 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
         if (Configuration.CONTINUOUS_DISPLAY_METADATA)
         {
             // Color text delimited by '-' as red.
-            statusViewBottom.setTextSize(14);
-            CharSequence cs = setSpanBetweenTokens("OCR: " + sourceLanguageCodeOcr + " - OCR failed - Time required: "
-                                                           + obj.getTimeRequired() + " ms", "-", new ForegroundColorSpan(0xFFFF0000));
-            statusViewBottom.setText(cs);
+            //statusViewBottom.setTextSize(14);
+            //CharSequence cs = setSpanBetweenTokens("OCR: " + sourceLanguageCodeOcr + " - OCR failed - Time required: "
+            //                                               + obj.getTimeRequired() + " ms", "-", new ForegroundColorSpan(0xFFFF0000));
+            //statusViewBottom.setText(cs);
         }
     }
 
@@ -619,7 +661,7 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
     {
         if (Configuration.CONTINUOUS_DISPLAY_METADATA)
         {
-            statusViewBottom.setText("OCR: " + sourceLanguageCodeOcr + " - waiting for OCR...");
+            //statusViewBottom.setText("OCR: " + sourceLanguageCodeOcr + " - waiting for OCR...");
         }
     }
 

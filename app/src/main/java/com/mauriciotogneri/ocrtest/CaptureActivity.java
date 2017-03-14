@@ -38,7 +38,6 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
     private SurfaceHolder surfaceHolder;
     private TextView statusViewBottom;
     private TextView statusViewTop;
-    private View cameraButtonView;
     private View resultView;
     private View progressView;
     private OcrResult lastResult;
@@ -77,7 +76,6 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         setContentView(R.layout.capture);
-        cameraButtonView = findViewById(R.id.camera_button_view);
         resultView = findViewById(R.id.result_view);
 
         statusViewBottom = (TextView) findViewById(R.id.status_view_bottom);
@@ -455,7 +453,6 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
         // Turn off capture-related UI elements
         statusViewBottom.setVisibility(View.GONE);
         statusViewTop.setVisibility(View.GONE);
-        cameraButtonView.setVisibility(View.GONE);
         resultView.setVisibility(View.VISIBLE);
 
         ImageView bitmapImageView = (ImageView) findViewById(R.id.image_view);
@@ -611,7 +608,6 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
             statusViewTop.setTextSize(14);
             statusViewTop.setVisibility(View.VISIBLE);
         }
-        cameraButtonView.setVisibility(View.VISIBLE);
         lastResult = null;
     }
 

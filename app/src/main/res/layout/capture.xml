@@ -7,8 +7,7 @@
     <SurfaceView
         android:id="@+id/preview_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_centerInParent="true" />
+        android:layout_height="match_parent" />
 
     <LinearLayout
         android:id="@+id/result_view"
@@ -21,7 +20,7 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="0dp"
             android:layout_weight="1"
             android:gravity="center"
             android:orientation="horizontal"
@@ -102,8 +101,7 @@
                     <LinearLayout
                         android:id="@+id/indeterminate_progress_indicator_view"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        >
+                        android:layout_height="wrap_content">
 
                         <ProgressBar
                             android:id="@+id/progress_small"
@@ -112,8 +110,8 @@
                             android:layout_height="wrap_content"
                             android:paddingLeft="12dip"
                             android:paddingTop="10dip" />
-                    </LinearLayout>
 
+                    </LinearLayout>
 
                 </LinearLayout>
 
@@ -122,36 +120,5 @@
         </LinearLayout>
 
     </LinearLayout>
-
-    <RelativeLayout
-        android:id="@+id/camera_button_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
-        <TextView
-            android:id="@+id/status_view_top"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
-            android:autoLink="web"
-            android:background="#0000"
-            android:clickable="true"
-            android:text=""
-            android:textColor="@color/status_text"
-            android:textSize="14sp" />
-
-        <TextView
-            android:id="@+id/status_view_bottom"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:autoLink="web"
-            android:background="#0000"
-            android:clickable="true"
-            android:text=""
-            android:textColor="@color/status_text"
-            android:textSize="14sp" />
-
-    </RelativeLayout>
 
 </FrameLayout>

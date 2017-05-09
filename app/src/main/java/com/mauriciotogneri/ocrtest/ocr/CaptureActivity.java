@@ -4,8 +4,6 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -13,16 +11,12 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.SpannableStringBuilder;
 import android.text.style.CharacterStyle;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.googlecode.tesseract.android.TessBaseAPI;
@@ -37,10 +31,10 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
     private CameraManager cameraManager;
     private CaptureActivityHandler handler;
     private SurfaceHolder surfaceHolder;
-    private TextView statusViewBottom;
-    private TextView statusViewTop;
-    private View resultView;
-    private View progressView;
+    //private TextView statusViewBottom;
+    //private TextView statusViewTop;
+    //private View resultView;
+    //private View progressView;
     private OcrResult lastResult;
     private boolean hasSurface;
     private TessBaseAPI baseApi; // Java interface for the Tesseract OCR engine
@@ -75,25 +69,26 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
 
         Window window = getWindow();
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
-        setContentView(R.layout.capture);
-        resultView = findViewById(R.id.result_view);
 
-        statusViewBottom = (TextView) findViewById(R.id.status_view_bottom);
-        registerForContextMenu(statusViewBottom);
-        statusViewTop = (TextView) findViewById(R.id.status_view_top);
-        registerForContextMenu(statusViewTop);
+        setContentView(R.layout.capture);
+
+        //resultView = findViewById(R.id.result_view);
+
+        //statusViewBottom = (TextView) findViewById(R.id.status_view_bottom);
+        //registerForContextMenu(statusViewBottom);
+        //statusViewTop = (TextView) findViewById(R.id.status_view_top);
+        //registerForContextMenu(statusViewTop);
 
         handler = null;
         lastResult = null;
         hasSurface = false;
 
-        TextView ocrResultView = (TextView) findViewById(R.id.ocr_result_text_view);
-        registerForContextMenu(ocrResultView);
-        TextView translationView = (TextView) findViewById(R.id.translation_text_view);
-        registerForContextMenu(translationView);
+        //TextView ocrResultView = (TextView) findViewById(R.id.ocr_result_text_view);
+        //registerForContextMenu(ocrResultView);
+        //TextView translationView = (TextView) findViewById(R.id.translation_text_view);
+        //registerForContextMenu(translationView);
 
-        progressView = findViewById(R.id.indeterminate_progress_indicator_view);
+        //progressView = findViewById(R.id.indeterminate_progress_indicator_view);
 
         cameraManager = new CameraManager(getApplication());
 
@@ -452,39 +447,39 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
         }
 
         // Turn off capture-related UI elements
-        statusViewBottom.setVisibility(View.GONE);
-        statusViewTop.setVisibility(View.GONE);
-        resultView.setVisibility(View.VISIBLE);
+        //statusViewBottom.setVisibility(View.GONE);
+        //statusViewTop.setVisibility(View.GONE);
+        //resultView.setVisibility(View.VISIBLE);
 
-        ImageView bitmapImageView = (ImageView) findViewById(R.id.image_view);
-        Bitmap lastBitmap = ocrResult.getBitmap();
+        //ImageView bitmapImageView = (ImageView) findViewById(R.id.image_view);
+        //Bitmap lastBitmap = ocrResult.getBitmap();
 
-        if (lastBitmap == null)
+        /*if (lastBitmap == null)
         {
             bitmapImageView.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher));
         }
         else
         {
             bitmapImageView.setImageBitmap(lastBitmap);
-        }
+        }*/
 
         // Display the recognized text
-        TextView sourceLanguageTextView = (TextView) findViewById(R.id.source_language_text_view);
-        sourceLanguageTextView.setText(sourceLanguageCodeOcr);
-        TextView ocrResultTextView = (TextView) findViewById(R.id.ocr_result_text_view);
-        ocrResultTextView.setText(ocrResult.getText());
+        //TextView sourceLanguageTextView = (TextView) findViewById(R.id.source_language_text_view);
+        //sourceLanguageTextView.setText(sourceLanguageCodeOcr);
+        //TextView ocrResultTextView = (TextView) findViewById(R.id.ocr_result_text_view);
+        //ocrResultTextView.setText(ocrResult.getText());
         // Crudely scale betweeen 22 and 32 -- bigger font for shorter text
         int scaledSize = Math.max(22, 32 - ocrResult.getText().length() / 4);
-        ocrResultTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, scaledSize);
+        //ocrResultTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, scaledSize);
 
         //TextView translationLanguageLabelTextView = (TextView) findViewById(R.id.translation_language_label_text_view);
         //TextView translationLanguageTextView = (TextView) findViewById(R.id.translation_language_text_view);
-        TextView translationTextView = (TextView) findViewById(R.id.translation_text_view);
+        //TextView translationTextView = (TextView) findViewById(R.id.translation_text_view);
 
         //translationLanguageLabelTextView.setVisibility(View.GONE);
         //translationLanguageTextView.setVisibility(View.GONE);
-        translationTextView.setVisibility(View.GONE);
-        progressView.setVisibility(View.GONE);
+        //translationTextView.setVisibility(View.GONE);
+        //progressView.setVisibility(View.GONE);
         setProgressBarVisibility(false);
 
         return true;
@@ -587,7 +582,7 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
         lastResult = null;
 
         // Reset the text in the recognized text box.
-        statusViewTop.setText("");
+        //statusViewTop.setText("");
 
         if (Configuration.CONTINUOUS_DISPLAY_METADATA)
         {
@@ -637,7 +632,7 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
      */
     private void resetStatusView()
     {
-        resultView.setVisibility(View.GONE);
+        /*resultView.setVisibility(View.GONE);
         if (Configuration.CONTINUOUS_DISPLAY_METADATA)
         {
             statusViewBottom.setText("");
@@ -650,7 +645,7 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
             statusViewTop.setText("");
             statusViewTop.setTextSize(14);
             statusViewTop.setVisibility(View.VISIBLE);
-        }
+        }*/
         lastResult = null;
     }
 

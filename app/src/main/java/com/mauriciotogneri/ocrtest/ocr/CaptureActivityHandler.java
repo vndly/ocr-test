@@ -28,13 +28,9 @@ final class CaptureActivityHandler extends Handler
     {
         this.activity = activity;
         this.cameraManager = cameraManager;
+        this.decodeThread = new DecodeThread(activity);
+        this.decodeThread.start();
         this.state = State.CONTINUOUS;
-
-        // Start ourselves capturing previews (and decoding if using continuous recognition mode).
-        cameraManager.startPreview();
-
-        decodeThread = new DecodeThread(activity);
-        decodeThread.start();
 
         restartOcrPreviewAndDecode();
     }
@@ -42,40 +38,54 @@ final class CaptureActivityHandler extends Handler
     @Override
     public void handleMessage(Message message)
     {
-
         switch (message.what)
         {
             case R.id.ocr_continuous_decode_failed:
-                DecodeHandler.resetDecodeState();
-                if (state == State.CONTINUOUS)
-                {
-                    restartOcrPreviewAndDecode();
-                }
+                decodeFail();
                 break;
 
             case R.id.ocr_continuous_decode_succeeded:
-                DecodeHandler.resetDecodeState();
-                try
-                {
-                    activity.handleOcrResult((OcrResult) message.obj);
-                }
-                catch (NullPointerException e)
-                {
-                    // Continue
-                }
-                if (state == State.CONTINUOUS)
-                {
-                    restartOcrPreviewAndDecode();
-                }
+                decodeSucceeded((OcrResult) message.obj);
                 break;
+        }
+    }
+
+    private void decodeFail()
+    {
+        DecodeHandler.resetDecodeState();
+
+        if (state == State.CONTINUOUS)
+        {
+            restartOcrPreviewAndDecode();
+        }
+    }
+
+    private void decodeSucceeded(OcrResult result)
+    {
+        DecodeHandler.resetDecodeState();
+
+        try
+        {
+            activity.handleOcrResult(result);
+        }
+        catch (Exception e)
+        {
+            // ignore
+        }
+
+        if (state == State.CONTINUOUS)
+        {
+            restartOcrPreviewAndDecode();
         }
     }
 
     public void pause()
     {
-        state = State.CONTINUOUS_PAUSED;
-
-        removeMessages();
+        if (state == State.CONTINUOUS)
+        {
+            state = State.CONTINUOUS_PAUSED;
+            removeMessages();
+        }
     }
 
     public void resume()
@@ -87,7 +97,7 @@ final class CaptureActivityHandler extends Handler
         }
     }
 
-    void quitSynchronously()
+    void stop()
     {
         state = State.DONE;
 
@@ -98,17 +108,20 @@ final class CaptureActivityHandler extends Handler
 
         try
         {
-            // Wait at most half a second; should be enough time, and onPause() will timeout quickly
+            // wait at most half a second; should be enough time, and onPause() will timeout quickly
             decodeThread.join(500L);
         }
         catch (Exception e)
         {
-            // continue
+            // ignore
         }
 
         removeMessages();
     }
 
+    /**
+     * Remove all the enqueued messages
+     */
     private void removeMessages()
     {
         removeMessages(R.id.ocr_continuous_decode);
@@ -120,10 +133,10 @@ final class CaptureActivityHandler extends Handler
      */
     private void restartOcrPreviewAndDecode()
     {
-        // Continue capturing camera frames
+        // continue capturing camera frames
         cameraManager.startPreview();
 
-        // Continue requesting decode of images
+        // continue requesting decode of images
         cameraManager.requestOcrDecode(decodeThread.handler(), R.id.ocr_continuous_decode);
     }
 }

@@ -55,7 +55,7 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
 
         if (handler != null)
         {
-            handler.quitSynchronously();
+            handler.stop();
         }
 
         baseApi = new TessBaseAPI();
@@ -182,7 +182,7 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
         {
             if (isFinishing())
             {
-                handler.quitSynchronously();
+                handler.stop();
             }
             else
             {

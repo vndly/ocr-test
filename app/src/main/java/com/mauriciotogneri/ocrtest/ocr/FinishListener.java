@@ -1,4 +1,4 @@
-package com.mauriciotogneri.ocrtest;
+package com.mauriciotogneri.ocrtest.ocr;
 
 import android.app.Activity;
 import android.content.DialogInterface;

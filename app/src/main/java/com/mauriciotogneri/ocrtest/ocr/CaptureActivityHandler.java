@@ -1,4 +1,4 @@
-package com.mauriciotogneri.ocrtest;
+package com.mauriciotogneri.ocrtest.ocr;
 
 import android.os.Handler;
 import android.os.Message;
@@ -6,6 +6,7 @@ import android.util.Log;
 import android.view.Gravity;
 import android.widget.Toast;
 
+import com.mauriciotogneri.ocrtest.R;
 import com.mauriciotogneri.ocrtest.camera.CameraManager;
 
 /**

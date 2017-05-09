@@ -1,4 +1,4 @@
-package com.mauriciotogneri.ocrtest;
+package com.mauriciotogneri.ocrtest.ocr;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -26,6 +26,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.googlecode.tesseract.android.TessBaseAPI;
+import com.mauriciotogneri.ocrtest.R;
 import com.mauriciotogneri.ocrtest.camera.CameraManager;
 
 import java.io.File;

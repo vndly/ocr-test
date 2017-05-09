@@ -34,7 +34,7 @@
         </activity>
 
         <activity
-            android:name=".CaptureActivity"
+            android:name=".ocr.CaptureActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:screenOrientation="landscape"
             android:windowSoftInputMode="stateAlwaysHidden" />

@@ -1,4 +1,4 @@
-package com.mauriciotogneri.ocrtest;
+package com.mauriciotogneri.ocrtest.ocr;
 
 import android.graphics.Bitmap;
 import android.os.Handler;
@@ -8,6 +8,7 @@ import android.os.Message;
 import com.googlecode.leptonica.android.Pixa;
 import com.googlecode.leptonica.android.ReadFile;
 import com.googlecode.tesseract.android.TessBaseAPI;
+import com.mauriciotogneri.ocrtest.R;
 
 /**
  * Class to send bitmap data for OCR.

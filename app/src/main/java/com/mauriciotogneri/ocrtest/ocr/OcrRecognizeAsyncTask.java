@@ -1,4 +1,4 @@
-package com.mauriciotogneri.ocrtest;
+package com.mauriciotogneri.ocrtest.ocr;
 
 import android.graphics.Bitmap;
 import android.graphics.Rect;
@@ -11,6 +11,7 @@ import com.googlecode.leptonica.android.ReadFile;
 import com.googlecode.tesseract.android.ResultIterator;
 import com.googlecode.tesseract.android.TessBaseAPI;
 import com.googlecode.tesseract.android.TessBaseAPI.PageIteratorLevel;
+import com.mauriciotogneri.ocrtest.R;
 
 import java.util.ArrayList;
 

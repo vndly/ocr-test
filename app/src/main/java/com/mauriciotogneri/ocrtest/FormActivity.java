@@ -7,6 +7,8 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.TextView;
 
+import com.mauriciotogneri.ocrtest.ocr.CaptureActivity;
+
 public class FormActivity extends AppCompatActivity
 {
     @Override

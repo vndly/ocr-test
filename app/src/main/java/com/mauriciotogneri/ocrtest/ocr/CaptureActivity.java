@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.Window;
@@ -24,7 +23,6 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
     private CameraManager cameraManager;
     private CaptureActivityHandler handler;
     private SurfaceHolder surfaceHolder;
-    private OcrResult lastResult;
     private TessBaseAPI baseApi;
 
     private boolean hasSurface;
@@ -41,44 +39,11 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
         setContentView(R.layout.capture);
 
         handler = null;
-        lastResult = null;
 
         hasSurface = false;
         isEngineReady = false;
 
         cameraManager = new CameraManager(getApplication());
-    }
-
-    @Override
-    protected void onResume()
-    {
-        super.onResume();
-        resetStatusView();
-
-        SurfaceView surfaceView = (SurfaceView) findViewById(R.id.previewView);
-        surfaceHolder = surfaceView.getHolder();
-
-        if (!hasSurface)
-        {
-            surfaceHolder.addCallback(this);
-            surfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
-        }
-
-        // Do OCR engine initialization, if necessary
-        if (baseApi == null)
-        {
-            // Initialize the OCR engine
-            File storageDirectory = getStorageDirectory();
-            if (storageDirectory != null)
-            {
-                initOcrEngine(storageDirectory, Configuration.DEFAULT_SOURCE_LANGUAGE_CODE);
-            }
-        }
-        else
-        {
-            // We already have the engine initialized, so just start the camera.
-            resumeOCR();
-        }
     }
 
     private void initOcrEngine(File storageRoot, String languageCode)
@@ -90,9 +55,39 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
             handler.quitSynchronously();
         }
 
-        // Start AsyncTask to install language data and init OCR
         baseApi = new TessBaseAPI();
+
+        // Start AsyncTask to install language data and init OCR
         new OcrInitAsyncTask(this, baseApi, languageCode, storageRoot.toString(), Configuration.DEFAULT_OCR_ENGINE_MODE).execute();
+    }
+
+    /**
+     * Method to start or restart recognition after the OCR engine has been initialized,
+     * or after the app regains focus. Sets state related settings and OCR engine parameters,
+     * and requests camera initialization.
+     */
+    public void resumeOCR()
+    {
+        isEngineReady = true;
+
+        if (handler != null)
+        {
+            handler.resetState();
+        }
+
+        if (baseApi != null)
+        {
+            baseApi.setPageSegMode(Configuration.DEFAULT_PAGE_SEGMENTATION_MODE);
+            baseApi.setVariable(TessBaseAPI.VAR_CHAR_BLACKLIST, Configuration.DEFAULT_BLACKLIST);
+            baseApi.setVariable(TessBaseAPI.VAR_CHAR_WHITELIST, Configuration.DEFAULT_WHITELIST);
+        }
+
+        if (hasSurface)
+        {
+            // The activity was paused but not stopped, so the surface still exists. Therefore
+            // surfaceCreated() won't be called, so init the camera here.
+            initCamera(surfaceHolder);
+        }
     }
 
     public Handler getHandler()
@@ -110,54 +105,15 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
         return cameraManager;
     }
 
-    /**
-     * Method to start or restart recognition after the OCR engine has been initialized,
-     * or after the app regains focus. Sets state related settings and OCR engine parameters,
-     * and requests camera initialization.
-     */
-    public void resumeOCR()
-    {
-        Log.d(getClass().getName(), "resumeOCR()");
-
-        // This method is called when Tesseract has already been successfully initialized, so set
-        // isEngineReady = true here.
-        isEngineReady = true;
-
-        if (handler != null)
-        {
-            handler.resetState();
-        }
-        if (baseApi != null)
-        {
-            baseApi.setPageSegMode(Configuration.DEFAULT_PAGE_SEGMENTATION_MODE);
-            baseApi.setVariable(TessBaseAPI.VAR_CHAR_BLACKLIST, Configuration.DEFAULT_BLACKLIST);
-            baseApi.setVariable(TessBaseAPI.VAR_CHAR_WHITELIST, Configuration.DEFAULT_WHITELIST);
-        }
-
-        if (hasSurface)
-        {
-            // The activity was paused but not stopped, so the surface still exists. Therefore
-            // surfaceCreated() won't be called, so init the camera here.
-            initCamera(surfaceHolder);
-        }
-    }
-
     @Override
     public void surfaceCreated(SurfaceHolder holder)
     {
-        Log.d(getClass().getName(), "surfaceCreated()");
-
-        if (holder == null)
-        {
-            Log.e(getClass().getName(), "surfaceCreated gave us a null surface");
-        }
-
-        // Only initialize the camera if the OCR engine is ready to go.
+        // only initialize the camera if the OCR engine is ready to go.
         if (!hasSurface && isEngineReady)
         {
-            Log.d(getClass().getName(), "surfaceCreated(): calling initCamera()...");
             initCamera(holder);
         }
+
         hasSurface = true;
     }
 
@@ -166,7 +122,6 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
      */
     private void initCamera(SurfaceHolder surfaceHolder)
     {
-        Log.d(getClass().getName(), "initCamera()");
         if (surfaceHolder == null)
         {
             throw new IllegalStateException("No SurfaceHolder provided");
@@ -178,11 +133,42 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
 
             // Creating the handler starts the preview, which can also throw a RuntimeException.
             handler = new CaptureActivityHandler(this, cameraManager, Configuration.DEFAULT_TOGGLE_CONTINUOUS);
-
         }
         catch (Exception ioe)
         {
             showErrorMessage("Error", "Could not initialize camera. Please try restarting device.");
+        }
+    }
+
+    @Override
+    protected void onResume()
+    {
+        super.onResume();
+
+        SurfaceView surfaceView = (SurfaceView) findViewById(R.id.previewView);
+        surfaceHolder = surfaceView.getHolder();
+
+        if (!hasSurface)
+        {
+            surfaceHolder.addCallback(this);
+            surfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+        }
+
+        // do OCR engine initialization, if necessary
+        if (baseApi == null)
+        {
+            // initialize the OCR engine
+            File storageDirectory = getStorageDirectory();
+
+            if (storageDirectory != null)
+            {
+                initOcrEngine(storageDirectory, Configuration.DEFAULT_SOURCE_LANGUAGE_CODE);
+            }
+        }
+        else
+        {
+            // we already have the engine initialized, so just start the camera.
+            resumeOCR();
         }
     }
 
@@ -206,14 +192,6 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
         super.onPause();
     }
 
-    public void stopHandler()
-    {
-        if (handler != null)
-        {
-            handler.stop();
-        }
-    }
-
     @Override
     protected void onDestroy()
     {
@@ -222,6 +200,14 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
             baseApi.end();
         }
         super.onDestroy();
+    }
+
+    public void stopHandler()
+    {
+        if (handler != null)
+        {
+            handler.stop();
+        }
     }
 
     public void surfaceDestroyed(SurfaceHolder holder)
@@ -239,23 +225,18 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
     private File getStorageDirectory()
     {
         String state = null;
+
         try
         {
             state = Environment.getExternalStorageState();
         }
         catch (RuntimeException e)
         {
-            Log.e(getClass().getName(), "Is the SD card visible?", e);
             showErrorMessage("Error", "Required external storage (such as an SD card) is unavailable.");
         }
 
         if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState()))
         {
-
-            // We can read and write the media
-            //    	if (Integer.valueOf(android.os.Build.VERSION.SDK_INT) > 7) {
-            // For Android 2.2 and above
-
             try
             {
                 return getExternalFilesDir(Environment.MEDIA_MOUNTED);
@@ -263,7 +244,6 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
             catch (NullPointerException e)
             {
                 // We get an error here if the SD card is visible, but full
-                Log.e(getClass().getName(), "External storage is unavailable");
                 showErrorMessage("Error", "Required external storage (such as an SD card) is full or unavailable.");
             }
 
@@ -271,16 +251,15 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
         else if (Environment.MEDIA_MOUNTED_READ_ONLY.equals(state))
         {
             // We can only read the media
-            Log.e(getClass().getName(), "External storage is read-only");
             showErrorMessage("Error", "Required external storage (such as an SD card) is unavailable for data storage.");
         }
         else
         {
             // Something else is wrong. It may be one of many other states, but all we need
             // to know is we can neither read nor write
-            Log.e(getClass().getName(), "External storage is unavailable");
             showErrorMessage("Error", "Required external storage (such as an SD card) is unavailable or corrupted.");
         }
+
         return null;
     }
 
@@ -291,8 +270,6 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
      */
     public void handleOcrContinuousDecode(OcrResult ocrResult)
     {
-        lastResult = ocrResult;
-
         if (Configuration.CONTINUOUS_DISPLAY_RECOGNIZED_TEXT)
         {
             String number = extractNumber(ocrResult.getText());
@@ -336,24 +313,6 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
         }
 
         return !number.isEmpty();
-    }
-
-    /**
-     * Version of handleOcrContinuousDecode for failed OCR requests. Displays a failure message.
-     *
-     * @param obj Metadata for the failed OCR request.
-     */
-    public void handleOcrContinuousDecode(OcrResultFailure obj)
-    {
-        lastResult = null;
-    }
-
-    /**
-     * Resets view elements.
-     */
-    private void resetStatusView()
-    {
-        lastResult = null;
     }
 
     public void showErrorMessage(String title, String message)

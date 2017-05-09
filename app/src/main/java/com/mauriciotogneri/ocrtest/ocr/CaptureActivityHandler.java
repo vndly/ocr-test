@@ -69,14 +69,6 @@ final class CaptureActivityHandler extends Handler
                 break;
             case R.id.ocr_continuous_decode_failed:
                 DecodeHandler.resetDecodeState();
-                try
-                {
-                    activity.handleOcrContinuousDecode((OcrResultFailure) message.obj);
-                }
-                catch (NullPointerException e)
-                {
-                    Log.w(TAG, "got bad OcrResultFailure", e);
-                }
                 if (state == State.CONTINUOUS)
                 {
                     restartOcrPreviewAndDecode();

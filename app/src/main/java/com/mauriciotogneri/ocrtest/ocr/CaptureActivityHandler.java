@@ -2,31 +2,24 @@ package com.mauriciotogneri.ocrtest.ocr;
 
 import android.os.Handler;
 import android.os.Message;
-import android.view.Gravity;
-import android.widget.Toast;
 
 import com.mauriciotogneri.ocrtest.R;
 import com.mauriciotogneri.ocrtest.camera.CameraManager;
 
 /**
  * This class handles all the messaging which comprises the state machine for capture.
- * <p>
- * The code for this class was adapted from the ZXing project: https://github.com/zxing/zxing
  */
 final class CaptureActivityHandler extends Handler
 {
     private final CaptureActivity activity;
     private final DecodeThread decodeThread;
-    private static State state;
+    private State state;
     private final CameraManager cameraManager;
 
     private enum State
     {
-        PREVIEW,
-        PREVIEW_PAUSED,
         CONTINUOUS,
         CONTINUOUS_PAUSED,
-        SUCCESS,
         DONE
     }
 
@@ -47,12 +40,6 @@ final class CaptureActivityHandler extends Handler
 
             restartOcrPreviewAndDecode();
         }
-        else
-        {
-            state = State.SUCCESS;
-
-            restartOcrPreview();
-        }
     }
 
     @Override
@@ -61,9 +48,6 @@ final class CaptureActivityHandler extends Handler
 
         switch (message.what)
         {
-            case R.id.restart_preview:
-                restartOcrPreview();
-                break;
             case R.id.ocr_continuous_decode_failed:
                 DecodeHandler.resetDecodeState();
                 if (state == State.CONTINUOUS)
@@ -71,6 +55,7 @@ final class CaptureActivityHandler extends Handler
                     restartOcrPreviewAndDecode();
                 }
                 break;
+
             case R.id.ocr_continuous_decode_succeeded:
                 DecodeHandler.resetDecodeState();
                 try
@@ -86,37 +71,18 @@ final class CaptureActivityHandler extends Handler
                     restartOcrPreviewAndDecode();
                 }
                 break;
-            case R.id.ocr_decode_succeeded:
-                state = State.SUCCESS;
-                //activity.handleOcrDecode((OcrResult) message.obj);
-                break;
-            case R.id.ocr_decode_failed:
-                state = State.PREVIEW;
-                Toast toast = Toast.makeText(activity.getBaseContext(), "OCR failed. Please try again.", Toast.LENGTH_SHORT);
-                toast.setGravity(Gravity.TOP, 0, 0);
-                toast.show();
-                break;
         }
     }
 
-    void stop()
+    public void pause()
     {
-        // TODO See if this should be done by sending a quit message to decodeHandler as is done
-        // below in quitSynchronously().
-
         state = State.CONTINUOUS_PAUSED;
-        removeMessages(R.id.ocr_continuous_decode);
-        removeMessages(R.id.ocr_decode);
-        removeMessages(R.id.ocr_continuous_decode_failed);
-        removeMessages(R.id.ocr_continuous_decode_succeeded); // TODO are these removeMessages() calls doing anything?
 
-        // Freeze the view displayed to the user.
-        //    CameraManager.get().stopPreview();
+        removeMessages();
     }
 
-    void resetState()
+    public void resume()
     {
-        //Log.d(TAG, "in restart()");
         if (state == State.CONTINUOUS_PAUSED)
         {
             state = State.CONTINUOUS;
@@ -127,15 +93,14 @@ final class CaptureActivityHandler extends Handler
     void quitSynchronously()
     {
         state = State.DONE;
+
         if (cameraManager != null)
         {
             cameraManager.stopPreview();
         }
-        //Message quit = Message.obtain(decodeThread.getHandler(), R.id.quit);
+
         try
         {
-            //quit.sendToTarget(); // This always gives "sending message to a Handler on a dead thread"
-
             // Wait at most half a second; should be enough time, and onPause() will timeout quickly
             decodeThread.join(500L);
         }
@@ -144,21 +109,13 @@ final class CaptureActivityHandler extends Handler
             // continue
         }
 
-        // Be absolutely sure we don't send any queued up messages
-        removeMessages(R.id.ocr_continuous_decode);
-        removeMessages(R.id.ocr_decode);
-
+        removeMessages();
     }
 
-    /**
-     * Start the preview, but don't try to OCR anything until the user presses the shutter button.
-     */
-    private void restartOcrPreview()
+    private void removeMessages()
     {
-        if (state == State.SUCCESS)
-        {
-            state = State.PREVIEW;
-        }
+        removeMessages(R.id.ocr_continuous_decode);
+        removeMessages(R.id.ocr_continuous_decode_failed);
     }
 
     /**
@@ -170,15 +127,6 @@ final class CaptureActivityHandler extends Handler
         cameraManager.startPreview();
 
         // Continue requesting decode of images
-        cameraManager.requestOcrDecode(decodeThread.getHandler(), R.id.ocr_continuous_decode);
-    }
-
-    /**
-     * Request OCR on the current preview frame.
-     */
-    private void ocrDecode()
-    {
-        state = State.PREVIEW_PAUSED;
-        cameraManager.requestOcrDecode(decodeThread.getHandler(), R.id.ocr_decode);
+        cameraManager.requestOcrDecode(decodeThread.handler(), R.id.ocr_continuous_decode);
     }
 }

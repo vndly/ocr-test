@@ -82,7 +82,8 @@ public class CameraManager
         {
             theCamera.startPreview();
             previewing = true;
-            autoFocusManager = new AutoFocusManager(context, camera);
+            autoFocusManager = new AutoFocusManager(camera);
+            autoFocusManager.start();
         }
     }
 
@@ -119,11 +120,6 @@ public class CameraManager
             previewCallback.setHandler(handler, message);
             theCamera.setOneShotPreviewCallback(previewCallback);
         }
-    }
-
-    public synchronized void requestAutoFocus(long delay)
-    {
-        autoFocusManager.start(delay);
     }
 
     private synchronized Rect getFramingRectInPreview()

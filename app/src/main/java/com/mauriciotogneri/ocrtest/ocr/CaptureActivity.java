@@ -73,11 +73,6 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
     {
         isEngineReady = true;
 
-        if (handler != null)
-        {
-            handler.resetState();
-        }
-
         if (baseApi != null)
         {
             baseApi.setPageSegMode(Configuration.DEFAULT_PAGE_SEGMENTATION_MODE);
@@ -118,6 +113,11 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
         }
 
         hasSurface = true;
+
+        if (handler != null)
+        {
+            handler.resume();
+        }
     }
 
     /**
@@ -180,7 +180,14 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
     {
         if (handler != null)
         {
-            handler.quitSynchronously();
+            if (isFinishing())
+            {
+                handler.quitSynchronously();
+            }
+            else
+            {
+                handler.pause();
+            }
         }
 
         // Stop using the camera, to avoid conflicting with other camera-based apps
@@ -192,6 +199,7 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
             SurfaceHolder surfaceHolder = surfaceView.getHolder();
             surfaceHolder.removeCallback(this);
         }
+
         super.onPause();
     }
 
@@ -209,15 +217,17 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
     {
         if (handler != null)
         {
-            handler.stop();
+            handler.pause();
         }
     }
 
+    @Override
     public void surfaceDestroyed(SurfaceHolder holder)
     {
         hasSurface = false;
     }
 
+    @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height)
     {
     }

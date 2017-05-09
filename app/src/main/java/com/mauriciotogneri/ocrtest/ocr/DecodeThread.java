@@ -7,8 +7,6 @@ import java.util.concurrent.CountDownLatch;
 
 /**
  * This thread does all the heavy lifting of decoding the images.
- * <p>
- * The code for this class was adapted from the ZXing project: https://github.com/zxing/zxing
  */
 public class DecodeThread extends Thread
 {
@@ -22,7 +20,7 @@ public class DecodeThread extends Thread
         this.handlerInitLatch = new CountDownLatch(1);
     }
 
-    public Handler getHandler()
+    public Handler handler()
     {
         try
         {

@@ -4,6 +4,7 @@ import android.graphics.Bitmap;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.util.Log;
 
 import com.googlecode.leptonica.android.Pixa;
 import com.googlecode.leptonica.android.ReadFile;
@@ -48,10 +49,6 @@ public class DecodeHandler extends Handler
                 }
                 break;
 
-            case R.id.ocr_decode:
-                ocrDecode((byte[]) message.obj, message.arg1, message.arg2);
-                break;
-
             case R.id.quit:
                 running = false;
                 Looper.myLooper().quit();
@@ -64,19 +61,6 @@ public class DecodeHandler extends Handler
         isDecodePending = false;
     }
 
-    /**
-     * Launch an AsyncTask to perform an OCR decode for single-shot mode.
-     *
-     * @param data   Image data
-     * @param width  Image width
-     * @param height Image height
-     */
-    private void ocrDecode(byte[] data, int width, int height)
-    {
-        // Launch OCR asynchronously, so we get the dialog box displayed immediately
-        new OcrRecognizeAsyncTask(activity, baseApi, data, width, height).execute();
-    }
-
     private void ocrContinuousDecode(byte[] data, int width, int height)
     {
         PlanarYUVLuminanceSource source = activity.getCameraManager().buildLuminanceSource(data, width, height);
@@ -87,21 +71,43 @@ public class DecodeHandler extends Handler
             return;
         }
 
-        bitmap = source.renderCroppedGreyscaleBitmap();
+        Bitmap renderedBitmap = source.renderCroppedGreyscaleBitmap();
 
-        OcrResult ocrResult = getOcrResult();
-        Handler handler = activity.getHandler();
-
-        if (handler == null)
+        if (renderedBitmap != null)
         {
-            return;
-        }
+            bitmap = renderedBitmap;
 
-        if (ocrResult == null)
-        {
+            OcrResult ocrResult = getOcrResult();
+            Handler handler = activity.getHandler();
+
+            if (handler == null)
+            {
+                return;
+            }
+
+            if (ocrResult == null)
+            {
+                try
+                {
+                    sendContinuousOcrFailMessage();
+                }
+                catch (NullPointerException e)
+                {
+                    activity.stopHandler();
+                }
+                finally
+                {
+                    bitmap.recycle();
+                    baseApi.clear();
+                }
+
+                return;
+            }
+
             try
             {
-                sendContinuousOcrFailMessage();
+                Message message = Message.obtain(handler, R.id.ocr_continuous_decode_succeeded, ocrResult);
+                message.sendToTarget();
             }
             catch (NullPointerException e)
             {
@@ -109,25 +115,8 @@ public class DecodeHandler extends Handler
             }
             finally
             {
-                bitmap.recycle();
                 baseApi.clear();
             }
-
-            return;
-        }
-
-        try
-        {
-            Message message = Message.obtain(handler, R.id.ocr_continuous_decode_succeeded, ocrResult);
-            message.sendToTarget();
-        }
-        catch (NullPointerException e)
-        {
-            activity.stopHandler();
-        }
-        finally
-        {
-            baseApi.clear();
         }
     }
 
@@ -135,7 +124,6 @@ public class DecodeHandler extends Handler
     {
         OcrResult ocrResult;
         String textResult;
-        long start = System.currentTimeMillis();
 
         try
         {
@@ -148,6 +136,7 @@ public class DecodeHandler extends Handler
                 return null;
             }
 
+            Log.d("RESULT", textResult);
             ocrResult = new OcrResult(textResult);
 
             // Always get the word bounding boxes--we want it for annotating the bitmap after the user

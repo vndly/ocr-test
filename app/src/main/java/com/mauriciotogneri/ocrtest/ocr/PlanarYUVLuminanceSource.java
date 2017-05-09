@@ -62,8 +62,16 @@ public final class PlanarYUVLuminanceSource
             inputOffset += dataWidth;
         }
 
-        Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-        bitmap.setPixels(pixels, 0, width, 0, 0, width, height);
-        return bitmap;
+        if ((width > 0) && (height > 0))
+        {
+            Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+            bitmap.setPixels(pixels, 0, width, 0, 0, width, height);
+
+            return bitmap;
+        }
+        else
+        {
+            return null;
+        }
     }
 }

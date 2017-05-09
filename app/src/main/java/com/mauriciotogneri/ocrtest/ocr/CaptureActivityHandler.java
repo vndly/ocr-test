@@ -13,8 +13,9 @@ final class CaptureActivityHandler extends Handler
 {
     private final CaptureActivity activity;
     private final DecodeThread decodeThread;
-    private State state;
     private final CameraManager cameraManager;
+
+    private State state;
 
     private enum State
     {
@@ -23,10 +24,11 @@ final class CaptureActivityHandler extends Handler
         DONE
     }
 
-    CaptureActivityHandler(CaptureActivity activity, CameraManager cameraManager, boolean isContinuousModeActive)
+    public CaptureActivityHandler(CaptureActivity activity, CameraManager cameraManager)
     {
         this.activity = activity;
         this.cameraManager = cameraManager;
+        this.state = State.CONTINUOUS;
 
         // Start ourselves capturing previews (and decoding if using continuous recognition mode).
         cameraManager.startPreview();
@@ -34,12 +36,7 @@ final class CaptureActivityHandler extends Handler
         decodeThread = new DecodeThread(activity);
         decodeThread.start();
 
-        if (isContinuousModeActive)
-        {
-            state = State.CONTINUOUS;
-
-            restartOcrPreviewAndDecode();
-        }
+        restartOcrPreviewAndDecode();
     }
 
     @Override

@@ -61,7 +61,7 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
         baseApi = new TessBaseAPI();
 
         // Start AsyncTask to install language data and init OCR
-        new OcrInitAsyncTask(this, baseApi, languageCode, storageRoot.toString(), Configuration.DEFAULT_OCR_ENGINE_MODE).execute();
+        new OcrInitAsyncTask(this, baseApi, languageCode, storageRoot.toString(), TessBaseAPI.OEM_TESSERACT_ONLY).execute();
     }
 
     /**
@@ -75,9 +75,9 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
 
         if (baseApi != null)
         {
-            baseApi.setPageSegMode(Configuration.DEFAULT_PAGE_SEGMENTATION_MODE);
-            baseApi.setVariable(TessBaseAPI.VAR_CHAR_BLACKLIST, Configuration.DEFAULT_BLACKLIST);
-            baseApi.setVariable(TessBaseAPI.VAR_CHAR_WHITELIST, Configuration.DEFAULT_WHITELIST);
+            baseApi.setPageSegMode(TessBaseAPI.PageSegMode.PSM_AUTO_OSD);
+            baseApi.setVariable(TessBaseAPI.VAR_CHAR_BLACKLIST, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmopqrstuvwxyz");
+            baseApi.setVariable(TessBaseAPI.VAR_CHAR_WHITELIST, "0123456789");
         }
 
         if (hasSurface)
@@ -135,7 +135,7 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
             cameraManager.openDriver(surfaceHolder);
 
             // Creating the handler starts the preview, which can also throw a RuntimeException.
-            handler = new CaptureActivityHandler(this, cameraManager, Configuration.DEFAULT_TOGGLE_CONTINUOUS);
+            handler = new CaptureActivityHandler(this, cameraManager);
         }
         catch (Exception ioe)
         {
@@ -165,7 +165,7 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
 
             if (storageDirectory != null)
             {
-                initOcrEngine(storageDirectory, Configuration.DEFAULT_SOURCE_LANGUAGE_CODE);
+                initOcrEngine(storageDirectory, "eng");
             }
         }
         else
@@ -283,18 +283,15 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
      */
     public void handleOcrResult(OcrResult ocrResult)
     {
-        if (Configuration.CONTINUOUS_DISPLAY_RECOGNIZED_TEXT)
+        String number = extractNumber(ocrResult.text());
+
+        if (number != null)
         {
-            String number = extractNumber(ocrResult.text());
+            Intent data = new Intent();
+            data.putExtra("number", number);
+            setResult(Activity.RESULT_OK, data);
 
-            if (number != null)
-            {
-                Intent data = new Intent();
-                data.putExtra("number", number);
-                setResult(Activity.RESULT_OK, data);
-
-                finish();
-            }
+            finish();
         }
     }
 

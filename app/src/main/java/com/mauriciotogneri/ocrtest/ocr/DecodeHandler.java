@@ -49,7 +49,7 @@ public class DecodeHandler extends Handler
                 }
                 break;
 
-            case R.id.quit:
+            case R.id.ocr_continuous_quit:
                 running = false;
                 Looper.myLooper().quit();
                 break;

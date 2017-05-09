@@ -109,7 +109,7 @@ public class CameraManager
      * @param handler The handler to send the message to.
      * @param message The what field of the message to be sent.
      */
-    public synchronized void requestOcrDecode(Handler handler, int message)
+    public synchronized void requestDecode(Handler handler, int message)
     {
         Camera theCamera = camera;
 

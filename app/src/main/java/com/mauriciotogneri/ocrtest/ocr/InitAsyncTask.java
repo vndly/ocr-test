@@ -18,7 +18,7 @@ import java.util.zip.ZipInputStream;
  * Installs the language data required for OCR, and initializes the OCR engine using a background
  * thread.
  */
-final class OcrInitAsyncTask extends AsyncTask<String, String, Boolean>
+final class InitAsyncTask extends AsyncTask<String, String, Boolean>
 {
     private final CaptureActivity activity;
     private final TessBaseAPI baseApi;
@@ -26,23 +26,23 @@ final class OcrInitAsyncTask extends AsyncTask<String, String, Boolean>
     private final ProgressDialog dialogWait;
     private final String languageCode;
     private final String destinationDirBase;
-    private final int ocrEngineMode;
+    private final int engineMode;
 
     private static final String CODE_CLOSE_DIALOG_PROGRESS = "close.dialog.progress";
 
     /**
      * AsyncTask to asynchronously download data and initialize Tesseract.
      *
-     * @param activity      The calling activity
-     * @param baseApi       API to the OCR engine
-     * @param languageCode  ISO 639-2 OCR language code
-     * @param ocrEngineMode Whether to use Tesseract, Cube, or both
+     * @param activity     The calling activity
+     * @param baseApi      API to the OCR engine
+     * @param languageCode ISO 639-2 OCR language code
+     * @param engineMode   Whether to use Tesseract, Cube, or both
      */
-    public OcrInitAsyncTask(CaptureActivity activity,
-                            TessBaseAPI baseApi,
-                            String languageCode,
-                            String destinationDirBase,
-                            int ocrEngineMode)
+    public InitAsyncTask(CaptureActivity activity,
+                         TessBaseAPI baseApi,
+                         String languageCode,
+                         String destinationDirBase,
+                         int engineMode)
     {
         this.activity = activity;
         this.baseApi = baseApi;
@@ -50,7 +50,7 @@ final class OcrInitAsyncTask extends AsyncTask<String, String, Boolean>
         this.dialogWait = new ProgressDialog(activity);
         this.languageCode = languageCode;
         this.destinationDirBase = destinationDirBase;
-        this.ocrEngineMode = ocrEngineMode;
+        this.engineMode = engineMode;
     }
 
     @Override
@@ -111,7 +111,7 @@ final class OcrInitAsyncTask extends AsyncTask<String, String, Boolean>
         publishProgress("", CODE_CLOSE_DIALOG_PROGRESS);
 
         // initialize the OCR engine
-        return baseApi.init(destinationDirBase + File.separator, languageCode, ocrEngineMode) && installSuccess;
+        return baseApi.init(destinationDirBase + File.separator, languageCode, engineMode) && installSuccess;
     }
 
     private void deleteIncompleteFiles(File incomplete, File tesseractTestFile)
@@ -155,8 +155,8 @@ final class OcrInitAsyncTask extends AsyncTask<String, String, Boolean>
     /**
      * Install a file from application assets to device external storage.
      *
-     * @param sourceFilename  File in assets to install
-     * @param modelRoot       Directory on SD card to install the file to
+     * @param sourceFilename File in assets to install
+     * @param modelRoot      Directory on SD card to install the file to
      * @return True if installZipFromAssets returns true
      * @throws IOException
      */
@@ -187,8 +187,8 @@ final class OcrInitAsyncTask extends AsyncTask<String, String, Boolean>
      * Unzip the given Zip file, located in application assets, into the given
      * destination file.
      *
-     * @param sourceFilename  Name of the file in assets
-     * @param destinationDir  Directory to save the destination file in
+     * @param sourceFilename Name of the file in assets
+     * @param destinationDir Directory to save the destination file in
      * @return
      * @throws IOException
      * @throws FileNotFoundException
@@ -297,7 +297,7 @@ final class OcrInitAsyncTask extends AsyncTask<String, String, Boolean>
 
         if (result)
         {
-            activity.resumeOCR();
+            activity.resume();
         }
         else
         {

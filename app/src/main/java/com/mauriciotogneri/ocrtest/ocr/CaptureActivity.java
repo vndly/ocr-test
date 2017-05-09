@@ -49,7 +49,7 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
         cameraManager = new CameraManager(getApplication());
     }
 
-    private void initOcrEngine(File storageRoot, String languageCode)
+    private void initEngine(File storageRoot, String languageCode)
     {
         isEngineReady = false;
 
@@ -61,7 +61,7 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
         baseApi = new TessBaseAPI();
 
         // Start AsyncTask to install language data and init OCR
-        new OcrInitAsyncTask(this, baseApi, languageCode, storageRoot.toString(), TessBaseAPI.OEM_TESSERACT_ONLY).execute();
+        new InitAsyncTask(this, baseApi, languageCode, storageRoot.toString(), TessBaseAPI.OEM_TESSERACT_ONLY).execute();
     }
 
     /**
@@ -69,7 +69,7 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
      * or after the app regains focus. Sets state related settings and OCR engine parameters,
      * and requests camera initialization.
      */
-    public void resumeOCR()
+    public void resume()
     {
         isEngineReady = true;
 
@@ -165,13 +165,13 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
 
             if (storageDirectory != null)
             {
-                initOcrEngine(storageDirectory, "eng");
+                initEngine(storageDirectory, "eng");
             }
         }
         else
         {
             // we already have the engine initialized, so just start the camera.
-            resumeOCR();
+            resume();
         }
     }
 
@@ -254,7 +254,7 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
             {
                 return getExternalFilesDir(Environment.MEDIA_MOUNTED);
             }
-            catch (NullPointerException e)
+            catch (Exception e)
             {
                 // We get an error here if the SD card is visible, but full
                 showErrorMessage("Error", "Required external storage (such as an SD card) is full or unavailable.");
@@ -281,7 +281,7 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
      *
      * @param result OCR result
      */
-    public void handleOcrResult(String result)
+    public void handleResult(String result)
     {
         String number = extractNumber(result);
 

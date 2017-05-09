@@ -4,7 +4,6 @@ import android.graphics.Bitmap;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.util.Log;
 
 import com.googlecode.leptonica.android.Pixa;
 import com.googlecode.leptonica.android.ReadFile;
@@ -19,7 +18,6 @@ public class DecodeHandler extends Handler
 {
     private final CaptureActivity activity;
     private final TessBaseAPI baseApi;
-    private Bitmap bitmap;
     private boolean running = true;
     private boolean isDecodePending = false;
 
@@ -32,26 +30,42 @@ public class DecodeHandler extends Handler
     @Override
     public void handleMessage(Message message)
     {
-        if (!running)
+        if (running)
         {
-            return;
+            switch (message.what)
+            {
+                case R.id.ocr_continuous_decode:
+                    decode(message);
+                    break;
+
+                case R.id.ocr_continuous_quit:
+                    stop();
+                    break;
+            }
         }
+    }
 
-        switch (message.what)
+    private void decode(Message message)
+    {
+        // only request a decode if a request is not already pending
+        if (!isDecodePending)
         {
-            case R.id.ocr_continuous_decode:
-                // only request a decode if a request is not already pending.
-                if (!isDecodePending)
-                {
-                    isDecodePending = true;
-                    ocrContinuousDecode((byte[]) message.obj, message.arg1, message.arg2);
-                }
-                break;
+            isDecodePending = true;
+            continuousDecode((byte[]) message.obj, message.arg1, message.arg2);
+        }
+    }
 
-            case R.id.ocr_continuous_quit:
-                running = false;
-                Looper.myLooper().quit();
-                break;
+    private void stop()
+    {
+        running = false;
+
+        try
+        {
+            Looper.myLooper().quit();
+        }
+        catch (Exception e)
+        {
+            // ignore
         }
     }
 
@@ -60,37 +74,29 @@ public class DecodeHandler extends Handler
         isDecodePending = false;
     }
 
-    private void ocrContinuousDecode(byte[] data, int width, int height)
+    private void continuousDecode(byte[] data, int width, int height)
     {
         PlanarYUVLuminanceSource source = activity.getCameraManager().buildLuminanceSource(data, width, height);
 
         if (source == null)
         {
-            sendContinuousOcrFailMessage();
+            sendContinuousFailMessage();
             return;
         }
 
-        Bitmap renderedBitmap = source.renderCroppedGreyscaleBitmap();
+        Bitmap bitmap = source.renderCroppedGreyscaleBitmap();
 
-        if (renderedBitmap != null)
+        if (bitmap != null)
         {
-            bitmap = renderedBitmap;
-
-            String result = result();
-            Handler handler = activity.getHandler();
-
-            if (handler == null)
-            {
-                return;
-            }
+            String result = result(bitmap);
 
             if (result == null)
             {
                 try
                 {
-                    sendContinuousOcrFailMessage();
+                    sendContinuousFailMessage();
                 }
-                catch (NullPointerException e)
+                catch (Exception e)
                 {
                     activity.stopHandler();
                 }
@@ -99,50 +105,47 @@ public class DecodeHandler extends Handler
                     bitmap.recycle();
                     baseApi.clear();
                 }
-
-                return;
             }
-
-            try
+            else
             {
-                Message message = Message.obtain(handler, R.id.ocr_continuous_decode_succeeded, result);
-                message.sendToTarget();
-            }
-            catch (NullPointerException e)
-            {
-                activity.stopHandler();
-            }
-            finally
-            {
-                baseApi.clear();
+                try
+                {
+                    sendMessage(R.id.ocr_continuous_decode_succeeded, result);
+                }
+                catch (Exception e)
+                {
+                    activity.stopHandler();
+                }
+                finally
+                {
+                    baseApi.clear();
+                }
             }
         }
     }
 
-    private String result()
+    private String result(Bitmap bitmap)
     {
-        String textResult;
+        String result;
 
         try
         {
             baseApi.setImage(ReadFile.readBitmap(bitmap));
-            textResult = baseApi.getUTF8Text();
+            result = baseApi.getUTF8Text();
 
-            // Check for failure to recognize text
-            if (textResult == null || textResult.equals(""))
+            // check for failure to recognize text
+            if ((result == null) || result.equals(""))
             {
                 return null;
             }
 
-            Log.d("RESULT", textResult);
-
-            // Always get the word bounding boxes--we want it for annotating the bitmap after the user
+            // always get the word bounding boxes--we want it for annotating the bitmap after the user
             // presses the shutter button, in addition to maybe wanting to draw boxes/words during the
             // continuous mode recognition.
             Pixa words = baseApi.getWords();
             words.recycle();
         }
-        catch (RuntimeException e)
+        catch (Exception e)
         {
             e.printStackTrace();
 
@@ -159,17 +162,28 @@ public class DecodeHandler extends Handler
             return null;
         }
 
-        return textResult;
+        return result;
     }
 
-    private void sendContinuousOcrFailMessage()
+    private void sendContinuousFailMessage()
+    {
+        sendMessage(R.id.ocr_continuous_decode_failed, null);
+    }
+
+    private void sendMessage(int what, Object object)
     {
         Handler handler = activity.getHandler();
 
         if (handler != null)
         {
-            Message message = Message.obtain(handler, R.id.ocr_continuous_decode_failed);
-            message.sendToTarget();
+            if (object != null)
+            {
+                Message.obtain(handler, what, object).sendToTarget();
+            }
+            else
+            {
+                Message.obtain(handler, what).sendToTarget();
+            }
         }
     }
 }

@@ -32,7 +32,7 @@ final class CaptureActivityHandler extends Handler
         this.decodeThread.start();
         this.state = State.CONTINUOUS;
 
-        restartOcrPreviewAndDecode();
+        restartPreviewAndDecode();
     }
 
     @Override
@@ -56,7 +56,7 @@ final class CaptureActivityHandler extends Handler
 
         if (state == State.CONTINUOUS)
         {
-            restartOcrPreviewAndDecode();
+            restartPreviewAndDecode();
         }
     }
 
@@ -66,7 +66,7 @@ final class CaptureActivityHandler extends Handler
 
         try
         {
-            activity.handleOcrResult(result);
+            activity.handleResult(result);
         }
         catch (Exception e)
         {
@@ -75,7 +75,7 @@ final class CaptureActivityHandler extends Handler
 
         if (state == State.CONTINUOUS)
         {
-            restartOcrPreviewAndDecode();
+            restartPreviewAndDecode();
         }
     }
 
@@ -103,7 +103,7 @@ final class CaptureActivityHandler extends Handler
         if (state == State.CONTINUOUS_PAUSED)
         {
             state = State.CONTINUOUS;
-            restartOcrPreviewAndDecode();
+            restartPreviewAndDecode();
         }
     }
 
@@ -141,12 +141,12 @@ final class CaptureActivityHandler extends Handler
     /**
      * Send a decode request for realtime OCR mode
      */
-    private void restartOcrPreviewAndDecode()
+    private void restartPreviewAndDecode()
     {
         // continue capturing camera frames
         cameraManager.startPreview();
 
         // continue requesting decode of images
-        cameraManager.requestOcrDecode(decodeThread.handler(), R.id.ocr_continuous_decode);
+        cameraManager.requestDecode(decodeThread.handler(), R.id.ocr_continuous_decode);
     }
 }

@@ -75,7 +75,7 @@ final class CameraConfigurationManager
 
         initializeTorch(parameters);
         String focusMode = findSettableValue(parameters.getSupportedFocusModes(),
-                                          Camera.Parameters.FOCUS_MODE_AUTO);
+                                             Camera.Parameters.FOCUS_MODE_AUTO);
 
         // Maybe selected auto-focus but not available, so fall through here:
         if (focusMode == null)

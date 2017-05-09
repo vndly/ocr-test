@@ -271,11 +271,11 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
      *
      * @param ocrResult Object representing successful OCR results
      */
-    public void handleOcrContinuousDecode(OcrResult ocrResult)
+    public void handleOcrResult(OcrResult ocrResult)
     {
         if (Configuration.CONTINUOUS_DISPLAY_RECOGNIZED_TEXT)
         {
-            String number = extractNumber(ocrResult.getText());
+            String number = extractNumber(ocrResult.text());
 
             if (number != null)
             {

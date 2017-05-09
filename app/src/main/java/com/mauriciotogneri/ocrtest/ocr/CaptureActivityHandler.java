@@ -2,7 +2,6 @@ package com.mauriciotogneri.ocrtest.ocr;
 
 import android.os.Handler;
 import android.os.Message;
-import android.util.Log;
 import android.view.Gravity;
 import android.widget.Toast;
 
@@ -16,8 +15,6 @@ import com.mauriciotogneri.ocrtest.camera.CameraManager;
  */
 final class CaptureActivityHandler extends Handler
 {
-    private static final String TAG = CaptureActivityHandler.class.getSimpleName();
-
     private final CaptureActivity activity;
     private final DecodeThread decodeThread;
     private static State state;
@@ -78,7 +75,7 @@ final class CaptureActivityHandler extends Handler
                 DecodeHandler.resetDecodeState();
                 try
                 {
-                    activity.handleOcrContinuousDecode((OcrResult) message.obj);
+                    activity.handleOcrResult((OcrResult) message.obj);
                 }
                 catch (NullPointerException e)
                 {
@@ -107,7 +104,6 @@ final class CaptureActivityHandler extends Handler
         // TODO See if this should be done by sending a quit message to decodeHandler as is done
         // below in quitSynchronously().
 
-        Log.d(TAG, "Setting state to CONTINUOUS_PAUSED.");
         state = State.CONTINUOUS_PAUSED;
         removeMessages(R.id.ocr_continuous_decode);
         removeMessages(R.id.ocr_decode);
@@ -123,7 +119,6 @@ final class CaptureActivityHandler extends Handler
         //Log.d(TAG, "in restart()");
         if (state == State.CONTINUOUS_PAUSED)
         {
-            Log.d(TAG, "Setting state to CONTINUOUS");
             state = State.CONTINUOUS;
             restartOcrPreviewAndDecode();
         }
@@ -144,19 +139,9 @@ final class CaptureActivityHandler extends Handler
             // Wait at most half a second; should be enough time, and onPause() will timeout quickly
             decodeThread.join(500L);
         }
-        catch (InterruptedException e)
-        {
-            Log.w(TAG, "Caught InterruptedException in quitSyncronously()", e);
-            // continue
-        }
-        catch (RuntimeException e)
-        {
-            Log.w(TAG, "Caught RuntimeException in quitSyncronously()", e);
-            // continue
-        }
         catch (Exception e)
         {
-            Log.w(TAG, "Caught unknown Exception in quitSynchronously()", e);
+            // continue
         }
 
         // Be absolutely sure we don't send any queued up messages
@@ -195,17 +180,5 @@ final class CaptureActivityHandler extends Handler
     {
         state = State.PREVIEW_PAUSED;
         cameraManager.requestOcrDecode(decodeThread.getHandler(), R.id.ocr_decode);
-    }
-
-    /**
-     * Request OCR when the hardware shutter button is clicked.
-     */
-    void hardwareShutterButtonClick()
-    {
-        // Ensure that we're not in continuous recognition mode
-        if (state == State.PREVIEW)
-        {
-            ocrDecode();
-        }
     }
 }

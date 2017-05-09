@@ -22,7 +22,6 @@ public class DecodeHandler extends Handler
     private final TessBaseAPI baseApi;
     private Bitmap bitmap;
     private static boolean isDecodePending;
-    private long timeRequired;
 
     public DecodeHandler(CaptureActivity activity)
     {
@@ -142,7 +141,6 @@ public class DecodeHandler extends Handler
         {
             baseApi.setImage(ReadFile.readBitmap(bitmap));
             textResult = baseApi.getUTF8Text();
-            timeRequired = System.currentTimeMillis() - start;
 
             // Check for failure to recognize text
             if (textResult == null || textResult.equals(""))
@@ -175,8 +173,6 @@ public class DecodeHandler extends Handler
             return null;
         }
 
-        timeRequired = System.currentTimeMillis() - start;
-
         return ocrResult;
     }
 
@@ -186,7 +182,7 @@ public class DecodeHandler extends Handler
 
         if (handler != null)
         {
-            Message message = Message.obtain(handler, R.id.ocr_continuous_decode_failed, new OcrResultFailure(timeRequired));
+            Message message = Message.obtain(handler, R.id.ocr_continuous_decode_failed);
             message.sendToTarget();
         }
     }

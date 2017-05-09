@@ -52,7 +52,7 @@ final class CaptureActivityHandler extends Handler
 
     private void decodeFail()
     {
-        DecodeHandler.resetDecodeState();
+        resetDecodeState();
 
         if (state == State.CONTINUOUS)
         {
@@ -62,7 +62,7 @@ final class CaptureActivityHandler extends Handler
 
     private void decodeSucceeded(String result)
     {
-        DecodeHandler.resetDecodeState();
+        resetDecodeState();
 
         try
         {
@@ -76,6 +76,16 @@ final class CaptureActivityHandler extends Handler
         if (state == State.CONTINUOUS)
         {
             restartOcrPreviewAndDecode();
+        }
+    }
+
+    private void resetDecodeState()
+    {
+        DecodeHandler decodeHandler = decodeThread.handler();
+
+        if (decodeHandler != null)
+        {
+            decodeHandler.resetDecodeState();
         }
     }
 

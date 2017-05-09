@@ -14,16 +14,14 @@ import com.mauriciotogneri.ocrtest.camera.PlanarYUVLuminanceSource;
 
 /**
  * Class to send bitmap data for OCR.
- * <p>
- * The code for this class was adapted from the ZXing project: https://github.com/zxing/zxing
  */
 public class DecodeHandler extends Handler
 {
     private final CaptureActivity activity;
-    private boolean running = true;
     private final TessBaseAPI baseApi;
     private Bitmap bitmap;
-    private static boolean isDecodePending;
+    private boolean running = true;
+    private boolean isDecodePending = false;
 
     public DecodeHandler(CaptureActivity activity)
     {
@@ -42,7 +40,7 @@ public class DecodeHandler extends Handler
         switch (message.what)
         {
             case R.id.ocr_continuous_decode:
-                // Only request a decode if a request is not already pending.
+                // only request a decode if a request is not already pending.
                 if (!isDecodePending)
                 {
                     isDecodePending = true;
@@ -57,7 +55,7 @@ public class DecodeHandler extends Handler
         }
     }
 
-    public static void resetDecodeState()
+    public void resetDecodeState()
     {
         isDecodePending = false;
     }

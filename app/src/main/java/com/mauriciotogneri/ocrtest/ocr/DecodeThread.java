@@ -1,6 +1,5 @@
 package com.mauriciotogneri.ocrtest.ocr;
 
-import android.os.Handler;
 import android.os.Looper;
 
 import java.util.concurrent.CountDownLatch;
@@ -12,7 +11,7 @@ public class DecodeThread extends Thread
 {
     private final CaptureActivity activity;
     private final CountDownLatch handlerInitLatch;
-    private Handler handler;
+    private DecodeHandler handler;
 
     public DecodeThread(CaptureActivity activity)
     {
@@ -20,7 +19,7 @@ public class DecodeThread extends Thread
         this.handlerInitLatch = new CountDownLatch(1);
     }
 
-    public Handler handler()
+    public DecodeHandler handler()
     {
         try
         {

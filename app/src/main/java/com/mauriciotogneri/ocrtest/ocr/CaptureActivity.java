@@ -23,7 +23,6 @@ import com.mauriciotogneri.ocrtest.camera.CameraManager;
 
 import java.io.File;
 
-// https://github.com/rmtheis/android-ocr
 public final class CaptureActivity extends AppCompatActivity implements SurfaceHolder.Callback
 {
     private CameraManager cameraManager;
@@ -33,7 +32,6 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
     private boolean hasSurface;
     private TessBaseAPI baseApi;
 
-    private ProgressDialog dialog; // for initOcr - language download & unzip
     private ProgressDialog indeterminateDialog; // also for initOcr - init OCR engine
     private boolean isEngineReady;
     private boolean isPaused;
@@ -370,20 +368,6 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
     {
         isEngineReady = false;
 
-        // Set up the dialog box for the thermometer-style download progress indicator
-        if (dialog != null)
-        {
-            dialog.dismiss();
-        }
-        dialog = new ProgressDialog(this);
-
-        // Display the name of the OCR engine we're initializing in the indeterminate progress dialog box
-        indeterminateDialog = new ProgressDialog(this);
-        indeterminateDialog.setTitle("Please wait");
-        indeterminateDialog.setMessage("Initializing OCR engine for " + languageCode + "...");
-        indeterminateDialog.setCancelable(false);
-        indeterminateDialog.show();
-
         if (handler != null)
         {
             handler.quitSynchronously();
@@ -391,7 +375,7 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
 
         // Start AsyncTask to install language data and init OCR
         baseApi = new TessBaseAPI();
-        new OcrInitAsyncTask(this, baseApi, dialog, indeterminateDialog, languageCode, Configuration.DEFAULT_OCR_ENGINE_MODE).execute(storageRoot.toString());
+        new OcrInitAsyncTask(this, baseApi, languageCode, storageRoot.toString(), Configuration.DEFAULT_OCR_ENGINE_MODE).execute();
     }
 
     /**

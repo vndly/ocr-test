@@ -99,7 +99,7 @@ final class CaptureActivityHandler extends Handler
                 break;
             case R.id.ocr_decode_succeeded:
                 state = State.SUCCESS;
-                activity.handleOcrDecode((OcrResult) message.obj);
+                //activity.handleOcrDecode((OcrResult) message.obj);
                 break;
             case R.id.ocr_decode_failed:
                 state = State.PREVIEW;

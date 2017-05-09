@@ -2,20 +2,16 @@ package com.mauriciotogneri.ocrtest.ocr;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.Gravity;
-import android.view.KeyEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.Toast;
 
 import com.googlecode.tesseract.android.TessBaseAPI;
 import com.mauriciotogneri.ocrtest.R;
@@ -29,27 +25,10 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
     private CaptureActivityHandler handler;
     private SurfaceHolder surfaceHolder;
     private OcrResult lastResult;
-    private boolean hasSurface;
     private TessBaseAPI baseApi;
 
-    private ProgressDialog indeterminateDialog; // also for initOcr - init OCR engine
+    private boolean hasSurface;
     private boolean isEngineReady;
-    private boolean isPaused;
-
-    public Handler getHandler()
-    {
-        return handler;
-    }
-
-    public TessBaseAPI getBaseApi()
-    {
-        return baseApi;
-    }
-
-    public CameraManager getCameraManager()
-    {
-        return cameraManager;
-    }
 
     @Override
     public void onCreate(Bundle icicle)
@@ -63,11 +42,11 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
 
         handler = null;
         lastResult = null;
+
         hasSurface = false;
+        isEngineReady = false;
 
         cameraManager = new CameraManager(getApplication());
-
-        isEngineReady = false;
     }
 
     @Override
@@ -102,20 +81,47 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
         }
     }
 
+    private void initOcrEngine(File storageRoot, String languageCode)
+    {
+        isEngineReady = false;
+
+        if (handler != null)
+        {
+            handler.quitSynchronously();
+        }
+
+        // Start AsyncTask to install language data and init OCR
+        baseApi = new TessBaseAPI();
+        new OcrInitAsyncTask(this, baseApi, languageCode, storageRoot.toString(), Configuration.DEFAULT_OCR_ENGINE_MODE).execute();
+    }
+
+    public Handler getHandler()
+    {
+        return handler;
+    }
+
+    public TessBaseAPI getBaseApi()
+    {
+        return baseApi;
+    }
+
+    public CameraManager getCameraManager()
+    {
+        return cameraManager;
+    }
+
     /**
      * Method to start or restart recognition after the OCR engine has been initialized,
      * or after the app regains focus. Sets state related settings and OCR engine parameters,
      * and requests camera initialization.
      */
-    void resumeOCR()
+    public void resumeOCR()
     {
         Log.d(getClass().getName(), "resumeOCR()");
 
         // This method is called when Tesseract has already been successfully initialized, so set
         // isEngineReady = true here.
         isEngineReady = true;
-
-        isPaused = false;
 
         if (handler != null)
         {
@@ -134,37 +140,6 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
             // surfaceCreated() won't be called, so init the camera here.
             initCamera(surfaceHolder);
         }
-    }
-
-    /**
-     * Called when the shutter button is pressed in continuous mode.
-     */
-    void onShutterButtonPressContinuous()
-    {
-        isPaused = true;
-        handler.stop();
-        if (lastResult != null)
-        {
-            handleOcrDecode(lastResult);
-        }
-        else
-        {
-            Toast toast = Toast.makeText(this, "OCR failed. Please try again.", Toast.LENGTH_SHORT);
-            toast.setGravity(Gravity.TOP, 0, 0);
-            toast.show();
-            resumeContinuousDecoding();
-        }
-    }
-
-    /**
-     * Called to resume recognition after translation in continuous mode.
-     */
-    void resumeContinuousDecoding()
-    {
-        isPaused = false;
-        resetStatusView();
-        DecodeHandler.resetDecodeState();
-        handler.resetState();
     }
 
     @Override
@@ -231,7 +206,7 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
         super.onPause();
     }
 
-    void stopHandler()
+    public void stopHandler()
     {
         if (handler != null)
         {
@@ -247,61 +222,6 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
             baseApi.end();
         }
         super.onDestroy();
-    }
-
-    @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event)
-    {
-        if (keyCode == KeyEvent.KEYCODE_BACK)
-        {
-            // First check if we're paused in continuous mode, and if so, just unpause.
-            if (isPaused)
-            {
-                Log.d(getClass().getName(), "only resuming continuous recognition, not quitting...");
-                resumeContinuousDecoding();
-                return true;
-            }
-
-            // Exit the app if we're not viewing an OCR result.
-            if (lastResult == null)
-            {
-                setResult(RESULT_CANCELED);
-                finish();
-                return true;
-            }
-            else
-            {
-                // Go back to previewing in regular OCR mode.
-                resetStatusView();
-                if (handler != null)
-                {
-                    handler.sendEmptyMessage(R.id.restart_preview);
-                }
-                return true;
-            }
-        }
-        else if (keyCode == KeyEvent.KEYCODE_CAMERA)
-        {
-            if (Configuration.DEFAULT_TOGGLE_CONTINUOUS)
-            {
-                onShutterButtonPressContinuous();
-            }
-            else
-            {
-                handler.hardwareShutterButtonClick();
-            }
-            return true;
-        }
-        else if (keyCode == KeyEvent.KEYCODE_FOCUS)
-        {
-            // Only perform autofocus if user is not holding down the button.
-            if (event.getRepeatCount() == 0)
-            {
-                cameraManager.requestAutoFocus(500L);
-            }
-            return true;
-        }
-        return super.onKeyDown(keyCode, event);
     }
 
     public void surfaceDestroyed(SurfaceHolder holder)
@@ -364,50 +284,12 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
         return null;
     }
 
-    private void initOcrEngine(File storageRoot, String languageCode)
-    {
-        isEngineReady = false;
-
-        if (handler != null)
-        {
-            handler.quitSynchronously();
-        }
-
-        // Start AsyncTask to install language data and init OCR
-        baseApi = new TessBaseAPI();
-        new OcrInitAsyncTask(this, baseApi, languageCode, storageRoot.toString(), Configuration.DEFAULT_OCR_ENGINE_MODE).execute();
-    }
-
-    /**
-     * Displays information relating to the result of OCR, and requests a translation if necessary.
-     *
-     * @param ocrResult Object representing successful OCR results
-     * @return True if a non-null result was received for OCR
-     */
-    boolean handleOcrDecode(OcrResult ocrResult)
-    {
-        lastResult = ocrResult;
-
-        // Test whether the result is null
-        if (ocrResult.getText() == null || ocrResult.getText().equals(""))
-        {
-            Toast toast = Toast.makeText(this, "OCR failed. Please try again.", Toast.LENGTH_SHORT);
-            toast.setGravity(Gravity.TOP, 0, 0);
-            toast.show();
-            return false;
-        }
-
-        setProgressBarVisibility(false);
-
-        return true;
-    }
-
     /**
      * Displays information relating to the results of a successful real-time OCR request.
      *
      * @param ocrResult Object representing successful OCR results
      */
-    void handleOcrContinuousDecode(OcrResult ocrResult)
+    public void handleOcrContinuousDecode(OcrResult ocrResult)
     {
         lastResult = ocrResult;
 
@@ -461,7 +343,7 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
      *
      * @param obj Metadata for the failed OCR request.
      */
-    void handleOcrContinuousDecode(OcrResultFailure obj)
+    public void handleOcrContinuousDecode(OcrResultFailure obj)
     {
         lastResult = null;
     }
@@ -472,20 +354,6 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
     private void resetStatusView()
     {
         lastResult = null;
-    }
-
-    public void displayProgressDialog()
-    {
-        indeterminateDialog = new ProgressDialog(this);
-        indeterminateDialog.setTitle("Please wait");
-        indeterminateDialog.setMessage("Performing OCR...");
-        indeterminateDialog.setCancelable(false);
-        indeterminateDialog.show();
-    }
-
-    public ProgressDialog getProgressDialog()
-    {
-        return indeterminateDialog;
     }
 
     public void showErrorMessage(String title, String message)

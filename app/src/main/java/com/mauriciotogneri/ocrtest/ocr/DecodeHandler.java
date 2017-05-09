@@ -74,8 +74,6 @@ public class DecodeHandler extends Handler
      */
     private void ocrDecode(byte[] data, int width, int height)
     {
-        activity.displayProgressDialog();
-
         // Launch OCR asynchronously, so we get the dialog box displayed immediately
         new OcrRecognizeAsyncTask(activity, baseApi, data, width, height).execute();
     }

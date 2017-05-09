@@ -1,2 +1,1 @@
-# ocr-test
-OCR Test
+# OCR Test

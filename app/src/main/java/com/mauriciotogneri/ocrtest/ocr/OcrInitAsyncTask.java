@@ -29,7 +29,6 @@ final class OcrInitAsyncTask extends AsyncTask<String, String, Boolean>
     private final int ocrEngineMode;
 
     private static final String CODE_CLOSE_DIALOG_PROGRESS = "close.dialog.progress";
-    private static final String CODE_CLOSE_DIALOG_WAIT = "close.dialog.wait";
 
     /**
      * AsyncTask to asynchronously download data and initialize Tesseract.

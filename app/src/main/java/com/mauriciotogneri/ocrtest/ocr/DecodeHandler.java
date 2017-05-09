@@ -150,15 +150,12 @@ public class DecodeHandler extends Handler
                 return null;
             }
 
-            ocrResult = new OcrResult();
-            ocrResult.setWordConfidences(baseApi.wordConfidences());
-            ocrResult.setMeanConfidence(baseApi.meanConfidence());
+            ocrResult = new OcrResult(textResult);
 
             // Always get the word bounding boxes--we want it for annotating the bitmap after the user
             // presses the shutter button, in addition to maybe wanting to draw boxes/words during the
             // continuous mode recognition.
             Pixa words = baseApi.getWords();
-            ocrResult.setWordBoundingBoxes(words.getBoxRects());
             words.recycle();
         }
         catch (RuntimeException e)
@@ -179,9 +176,6 @@ public class DecodeHandler extends Handler
         }
 
         timeRequired = System.currentTimeMillis() - start;
-        ocrResult.setBitmap(bitmap);
-        ocrResult.setText(textResult);
-        ocrResult.setRecognitionTimeRequired(timeRequired);
 
         return ocrResult;
     }

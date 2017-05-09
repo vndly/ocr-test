@@ -27,7 +27,6 @@ public class OcrRecognizeAsyncTask extends AsyncTask<Void, Void, Boolean>
     private int width;
     private int height;
     private OcrResult ocrResult;
-    private long timeRequired;
 
     OcrRecognizeAsyncTask(CaptureActivity activity, TessBaseAPI baseApi, byte[] data, int width, int height)
     {
@@ -41,7 +40,6 @@ public class OcrRecognizeAsyncTask extends AsyncTask<Void, Void, Boolean>
     @Override
     protected Boolean doInBackground(Void... arg0)
     {
-        long start = System.currentTimeMillis();
         Bitmap bitmap = activity.getCameraManager().buildLuminanceSource(data, width, height).renderCroppedGreyscaleBitmap();
         String textResult;
 
@@ -49,25 +47,18 @@ public class OcrRecognizeAsyncTask extends AsyncTask<Void, Void, Boolean>
         {
             baseApi.setImage(ReadFile.readBitmap(bitmap));
             textResult = baseApi.getUTF8Text();
-            timeRequired = System.currentTimeMillis() - start;
 
             // Check for failure to recognize text
             if (textResult == null || textResult.equals(""))
             {
                 return false;
             }
-            ocrResult = new OcrResult();
-            ocrResult.setWordConfidences(baseApi.wordConfidences());
-            ocrResult.setMeanConfidence(baseApi.meanConfidence());
-            ocrResult.setRegionBoundingBoxes(baseApi.getRegions().getBoxRects());
-            ocrResult.setTextlineBoundingBoxes(baseApi.getTextlines().getBoxRects());
-            ocrResult.setWordBoundingBoxes(baseApi.getWords().getBoxRects());
-            ocrResult.setStripBoundingBoxes(baseApi.getStrips().getBoxRects());
+            ocrResult = new OcrResult(textResult);
 
             // Iterate through the results.
             final ResultIterator iterator = baseApi.getResultIterator();
             int[] lastBoundingBox;
-            ArrayList<Rect> charBoxes = new ArrayList<Rect>();
+            ArrayList<Rect> charBoxes = new ArrayList<>();
             iterator.begin();
             do
             {
@@ -77,7 +68,6 @@ public class OcrRecognizeAsyncTask extends AsyncTask<Void, Void, Boolean>
                 charBoxes.add(lastRectBox);
             } while (iterator.next(PageIteratorLevel.RIL_SYMBOL));
             iterator.delete();
-            ocrResult.setCharacterBoundingBoxes(charBoxes);
 
         }
         catch (RuntimeException e)
@@ -95,10 +85,6 @@ public class OcrRecognizeAsyncTask extends AsyncTask<Void, Void, Boolean>
             }
             return false;
         }
-        timeRequired = System.currentTimeMillis() - start;
-        ocrResult.setBitmap(bitmap);
-        ocrResult.setText(textResult);
-        ocrResult.setRecognitionTimeRequired(timeRequired);
         return true;
     }
 

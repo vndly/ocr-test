@@ -29,11 +29,6 @@ public class Configuration
      */
     public static final boolean CONTINUOUS_DISPLAY_RECOGNIZED_TEXT = true;
 
-    /**
-     * Flag to display recognition-related statistics on the scanning screen.
-     */
-    public static final boolean CONTINUOUS_DISPLAY_METADATA = true;
-
     public static final String DEFAULT_BLACKLIST = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmopqrstuvwxyz";
 
     public static final String DEFAULT_WHITELIST = "0123456789";

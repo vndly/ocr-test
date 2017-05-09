@@ -8,8 +8,6 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
-import android.text.SpannableStringBuilder;
-import android.text.style.CharacterStyle;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -31,16 +29,9 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
     private CameraManager cameraManager;
     private CaptureActivityHandler handler;
     private SurfaceHolder surfaceHolder;
-    //private TextView statusViewBottom;
-    //private TextView statusViewTop;
-    //private View resultView;
-    //private View progressView;
     private OcrResult lastResult;
     private boolean hasSurface;
-    private TessBaseAPI baseApi; // Java interface for the Tesseract OCR engine
-
-    private final String sourceLanguageCodeOcr = Configuration.DEFAULT_SOURCE_LANGUAGE_CODE;
-    private final boolean isContinuousModeActive = Configuration.DEFAULT_TOGGLE_CONTINUOUS;
+    private TessBaseAPI baseApi;
 
     private ProgressDialog dialog; // for initOcr - language download & unzip
     private ProgressDialog indeterminateDialog; // also for initOcr - init OCR engine
@@ -72,23 +63,9 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
 
         setContentView(R.layout.capture);
 
-        //resultView = findViewById(R.id.result_view);
-
-        //statusViewBottom = (TextView) findViewById(R.id.status_view_bottom);
-        //registerForContextMenu(statusViewBottom);
-        //statusViewTop = (TextView) findViewById(R.id.status_view_top);
-        //registerForContextMenu(statusViewTop);
-
         handler = null;
         lastResult = null;
         hasSurface = false;
-
-        //TextView ocrResultView = (TextView) findViewById(R.id.ocr_result_text_view);
-        //registerForContextMenu(ocrResultView);
-        //TextView translationView = (TextView) findViewById(R.id.translation_text_view);
-        //registerForContextMenu(translationView);
-
-        //progressView = findViewById(R.id.indeterminate_progress_indicator_view);
 
         cameraManager = new CameraManager(getApplication());
 
@@ -101,7 +78,7 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
         super.onResume();
         resetStatusView();
 
-        SurfaceView surfaceView = (SurfaceView) findViewById(R.id.preview_view);
+        SurfaceView surfaceView = (SurfaceView) findViewById(R.id.previewView);
         surfaceHolder = surfaceView.getHolder();
 
         if (!hasSurface)
@@ -117,7 +94,7 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
             File storageDirectory = getStorageDirectory();
             if (storageDirectory != null)
             {
-                initOcrEngine(storageDirectory, sourceLanguageCodeOcr);
+                initOcrEngine(storageDirectory, Configuration.DEFAULT_SOURCE_LANGUAGE_CODE);
             }
         }
         else
@@ -184,12 +161,10 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
     /**
      * Called to resume recognition after translation in continuous mode.
      */
-    @SuppressWarnings("unused")
     void resumeContinuousDecoding()
     {
         isPaused = false;
         resetStatusView();
-        setStatusViewForContinuous();
         DecodeHandler.resetDecodeState();
         handler.resetState();
     }
@@ -229,7 +204,7 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
             cameraManager.openDriver(surfaceHolder);
 
             // Creating the handler starts the preview, which can also throw a RuntimeException.
-            handler = new CaptureActivityHandler(this, cameraManager, isContinuousModeActive);
+            handler = new CaptureActivityHandler(this, cameraManager, Configuration.DEFAULT_TOGGLE_CONTINUOUS);
 
         }
         catch (Exception ioe)
@@ -251,7 +226,7 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
 
         if (!hasSurface)
         {
-            SurfaceView surfaceView = (SurfaceView) findViewById(R.id.preview_view);
+            SurfaceView surfaceView = (SurfaceView) findViewById(R.id.previewView);
             SurfaceHolder surfaceHolder = surfaceView.getHolder();
             surfaceHolder.removeCallback(this);
         }
@@ -309,7 +284,7 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
         }
         else if (keyCode == KeyEvent.KEYCODE_CAMERA)
         {
-            if (isContinuousModeActive)
+            if (Configuration.DEFAULT_TOGGLE_CONTINUOUS)
             {
                 onShutterButtonPressContinuous();
             }
@@ -414,14 +389,6 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
             handler.quitSynchronously();
         }
 
-        // Disable continuous mode if we're using Cube. This will prevent bad states for devices
-        // with low memory that crash when running OCR with Cube, and prevent unwanted delays.
-        //        if (ocrEngineMode == TessBaseAPI.OEM_CUBE_ONLY || ocrEngineMode == TessBaseAPI.OEM_TESSERACT_CUBE_COMBINED)
-        //        {
-        //            Log.d(getClass().getName(), "Disabling continuous preview");
-        //            isContinuousModeActive = false;
-        //        }
-
         // Start AsyncTask to install language data and init OCR
         baseApi = new TessBaseAPI();
         new OcrInitAsyncTask(this, baseApi, dialog, indeterminateDialog, languageCode, Configuration.DEFAULT_OCR_ENGINE_MODE).execute(storageRoot.toString());
@@ -446,40 +413,6 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
             return false;
         }
 
-        // Turn off capture-related UI elements
-        //statusViewBottom.setVisibility(View.GONE);
-        //statusViewTop.setVisibility(View.GONE);
-        //resultView.setVisibility(View.VISIBLE);
-
-        //ImageView bitmapImageView = (ImageView) findViewById(R.id.image_view);
-        //Bitmap lastBitmap = ocrResult.getBitmap();
-
-        /*if (lastBitmap == null)
-        {
-            bitmapImageView.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher));
-        }
-        else
-        {
-            bitmapImageView.setImageBitmap(lastBitmap);
-        }*/
-
-        // Display the recognized text
-        //TextView sourceLanguageTextView = (TextView) findViewById(R.id.source_language_text_view);
-        //sourceLanguageTextView.setText(sourceLanguageCodeOcr);
-        //TextView ocrResultTextView = (TextView) findViewById(R.id.ocr_result_text_view);
-        //ocrResultTextView.setText(ocrResult.getText());
-        // Crudely scale betweeen 22 and 32 -- bigger font for shorter text
-        int scaledSize = Math.max(22, 32 - ocrResult.getText().length() / 4);
-        //ocrResultTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, scaledSize);
-
-        //TextView translationLanguageLabelTextView = (TextView) findViewById(R.id.translation_language_label_text_view);
-        //TextView translationLanguageTextView = (TextView) findViewById(R.id.translation_language_text_view);
-        //TextView translationTextView = (TextView) findViewById(R.id.translation_text_view);
-
-        //translationLanguageLabelTextView.setVisibility(View.GONE);
-        //translationLanguageTextView.setVisibility(View.GONE);
-        //translationTextView.setVisibility(View.GONE);
-        //progressView.setVisibility(View.GONE);
         setProgressBarVisibility(false);
 
         return true;
@@ -492,53 +425,20 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
      */
     void handleOcrContinuousDecode(OcrResult ocrResult)
     {
-
         lastResult = ocrResult;
-
-        // Send an OcrResultText object to the ViewfinderView for text rendering
-        OcrResultText resultText = new OcrResultText(ocrResult.getText(),
-                                                     ocrResult.getWordConfidences(),
-                                                     ocrResult.getMeanConfidence(),
-                                                     ocrResult.getBitmapDimensions(),
-                                                     ocrResult.getRegionBoundingBoxes(),
-                                                     ocrResult.getTextlineBoundingBoxes(),
-                                                     ocrResult.getStripBoundingBoxes(),
-                                                     ocrResult.getWordBoundingBoxes(),
-                                                     ocrResult.getCharacterBoundingBoxes());
-
-        Integer meanConfidence = ocrResult.getMeanConfidence();
 
         if (Configuration.CONTINUOUS_DISPLAY_RECOGNIZED_TEXT)
         {
-            // Display the recognized text on the screen
-            /*statusViewTop.setText(ocrResult.getText());
-            int scaledSize = Math.max(22, 32 - ocrResult.getText().length() / 4);
-            statusViewTop.setTextSize(TypedValue.COMPLEX_UNIT_SP, scaledSize);
-            statusViewTop.setTextColor(Color.BLACK);
-            statusViewTop.setBackgroundResource(R.color.status_top_text_background);
-
-            statusViewTop.getBackground().setAlpha(meanConfidence * (255 / 100));*/
-
             String number = extractNumber(ocrResult.getText());
 
             if (number != null)
             {
-                //Toast.makeText(this, number, Toast.LENGTH_SHORT).show();
                 Intent data = new Intent();
                 data.putExtra("number", number);
                 setResult(Activity.RESULT_OK, data);
 
                 finish();
             }
-        }
-
-        if (Configuration.CONTINUOUS_DISPLAY_METADATA)
-        {
-            // Display recognition-related metadata at the bottom of the screen
-            //long recognitionTimeRequired = ocrResult.getRecognitionTimeRequired();
-            //statusViewBottom.setTextSize(14);
-            //statusViewBottom.setText("OCR: " + sourceLanguageCodeOcr + " - Mean confidence: " +
-            //                                 meanConfidence.toString() + " - Time required: " + recognitionTimeRequired + " ms");
         }
     }
 
@@ -580,51 +480,6 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
     void handleOcrContinuousDecode(OcrResultFailure obj)
     {
         lastResult = null;
-
-        // Reset the text in the recognized text box.
-        //statusViewTop.setText("");
-
-        if (Configuration.CONTINUOUS_DISPLAY_METADATA)
-        {
-            // Color text delimited by '-' as red.
-            //statusViewBottom.setTextSize(14);
-            //CharSequence cs = setSpanBetweenTokens("OCR: " + sourceLanguageCodeOcr + " - OCR failed - Time required: "
-            //                                               + obj.getTimeRequired() + " ms", "-", new ForegroundColorSpan(0xFFFF0000));
-            //statusViewBottom.setText(cs);
-        }
-    }
-
-    /**
-     * Given either a Spannable String or a regular String and a token, apply
-     * the given CharacterStyle to the span between the tokens.
-     * <p>
-     * NOTE: This method was adapted from:
-     * http://www.androidengineer.com/2010/08/easy-method-for-formatting-android.html
-     * <p>
-     * <p>
-     * For example, {@code setSpanBetweenTokens("Hello ##world##!", "##", new
-     * ForegroundColorSpan(0xFFFF0000));} will return a CharSequence {@code
-     * "Hello world!"} with {@code world} in red.
-     */
-    private CharSequence setSpanBetweenTokens(CharSequence text, String token,
-                                              CharacterStyle... cs)
-    {
-        // Start and end refer to the points where the span will apply
-        int tokenLen = token.length();
-        int start = text.toString().indexOf(token) + tokenLen;
-        int end = text.toString().indexOf(token, start);
-
-        if (start > -1 && end > -1)
-        {
-            // Copy the spannable string to a mutable spannable string
-            SpannableStringBuilder ssb = new SpannableStringBuilder(text);
-            for (CharacterStyle c : cs)
-            {
-                ssb.setSpan(c, start, end, 0);
-            }
-            text = ssb;
-        }
-        return text;
     }
 
     /**
@@ -632,33 +487,7 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
      */
     private void resetStatusView()
     {
-        /*resultView.setVisibility(View.GONE);
-        if (Configuration.CONTINUOUS_DISPLAY_METADATA)
-        {
-            statusViewBottom.setText("");
-            statusViewBottom.setTextSize(14);
-            statusViewBottom.setTextColor(getResources().getColor(R.color.status_text));
-            statusViewBottom.setVisibility(View.VISIBLE);
-        }
-        if (Configuration.CONTINUOUS_DISPLAY_RECOGNIZED_TEXT)
-        {
-            statusViewTop.setText("");
-            statusViewTop.setTextSize(14);
-            statusViewTop.setVisibility(View.VISIBLE);
-        }*/
         lastResult = null;
-    }
-
-    /**
-     * Displays an initial message to the user while waiting for the first OCR request to be
-     * completed after starting realtime OCR.
-     */
-    void setStatusViewForContinuous()
-    {
-        if (Configuration.CONTINUOUS_DISPLAY_METADATA)
-        {
-            //statusViewBottom.setText("OCR: " + sourceLanguageCodeOcr + " - waiting for OCR...");
-        }
     }
 
     public void displayProgressDialog()

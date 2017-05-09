@@ -16,7 +16,6 @@ import com.mauriciotogneri.ocrtest.camera.CameraManager;
  */
 final class CaptureActivityHandler extends Handler
 {
-
     private static final String TAG = CaptureActivityHandler.class.getSimpleName();
 
     private final CaptureActivity activity;
@@ -48,9 +47,6 @@ final class CaptureActivityHandler extends Handler
         if (isContinuousModeActive)
         {
             state = State.CONTINUOUS;
-
-            // Display a "be patient" message while first recognition request is running
-            activity.setStatusViewForContinuous();
 
             restartOcrPreviewAndDecode();
         }

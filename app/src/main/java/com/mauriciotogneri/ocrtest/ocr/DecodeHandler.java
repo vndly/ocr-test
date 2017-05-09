@@ -134,7 +134,6 @@ public class DecodeHandler extends Handler
         }
     }
 
-    @SuppressWarnings("unused")
     private OcrResult getOcrResult()
     {
         OcrResult ocrResult;

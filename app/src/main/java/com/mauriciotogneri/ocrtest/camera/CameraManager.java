@@ -7,8 +7,6 @@ import android.hardware.Camera;
 import android.os.Handler;
 import android.view.SurfaceHolder;
 
-import com.mauriciotogneri.ocrtest.ocr.PlanarYUVLuminanceSource;
-
 import java.io.IOException;
 
 public class CameraManager

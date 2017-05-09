@@ -1,4 +1,4 @@
-package com.mauriciotogneri.ocrtest.ocr;
+package com.mauriciotogneri.ocrtest.camera;
 
 import android.graphics.Bitmap;
 

@@ -45,7 +45,7 @@ final class CaptureActivityHandler extends Handler
                 break;
 
             case R.id.ocr_continuous_decode_succeeded:
-                decodeSucceeded((OcrResult) message.obj);
+                decodeSucceeded(message.obj.toString());
                 break;
         }
     }
@@ -60,7 +60,7 @@ final class CaptureActivityHandler extends Handler
         }
     }
 
-    private void decodeSucceeded(OcrResult result)
+    private void decodeSucceeded(String result)
     {
         DecodeHandler.resetDecodeState();
 

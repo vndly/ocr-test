@@ -11,8 +11,8 @@ import java.util.concurrent.CountDownLatch;
 public class DecodeThread extends Thread
 {
     private final CaptureActivity activity;
-    private Handler handler;
     private final CountDownLatch handlerInitLatch;
+    private Handler handler;
 
     public DecodeThread(CaptureActivity activity)
     {

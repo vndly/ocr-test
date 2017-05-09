@@ -10,6 +10,7 @@ import com.googlecode.leptonica.android.Pixa;
 import com.googlecode.leptonica.android.ReadFile;
 import com.googlecode.tesseract.android.TessBaseAPI;
 import com.mauriciotogneri.ocrtest.R;
+import com.mauriciotogneri.ocrtest.camera.PlanarYUVLuminanceSource;
 
 /**
  * Class to send bitmap data for OCR.
@@ -77,7 +78,7 @@ public class DecodeHandler extends Handler
         {
             bitmap = renderedBitmap;
 
-            OcrResult ocrResult = getOcrResult();
+            String result = result();
             Handler handler = activity.getHandler();
 
             if (handler == null)
@@ -85,7 +86,7 @@ public class DecodeHandler extends Handler
                 return;
             }
 
-            if (ocrResult == null)
+            if (result == null)
             {
                 try
                 {
@@ -106,7 +107,7 @@ public class DecodeHandler extends Handler
 
             try
             {
-                Message message = Message.obtain(handler, R.id.ocr_continuous_decode_succeeded, ocrResult);
+                Message message = Message.obtain(handler, R.id.ocr_continuous_decode_succeeded, result);
                 message.sendToTarget();
             }
             catch (NullPointerException e)
@@ -120,9 +121,8 @@ public class DecodeHandler extends Handler
         }
     }
 
-    private OcrResult getOcrResult()
+    private String result()
     {
-        OcrResult ocrResult;
         String textResult;
 
         try
@@ -137,7 +137,6 @@ public class DecodeHandler extends Handler
             }
 
             Log.d("RESULT", textResult);
-            ocrResult = new OcrResult(textResult);
 
             // Always get the word bounding boxes--we want it for annotating the bitmap after the user
             // presses the shutter button, in addition to maybe wanting to draw boxes/words during the
@@ -162,7 +161,7 @@ public class DecodeHandler extends Handler
             return null;
         }
 
-        return ocrResult;
+        return textResult;
     }
 
     private void sendContinuousOcrFailMessage()

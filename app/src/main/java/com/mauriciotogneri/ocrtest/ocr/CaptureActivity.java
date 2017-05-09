@@ -279,11 +279,11 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
     /**
      * Displays information relating to the results of a successful real-time OCR request.
      *
-     * @param ocrResult Object representing successful OCR results
+     * @param result OCR result
      */
-    public void handleOcrResult(OcrResult ocrResult)
+    public void handleOcrResult(String result)
     {
-        String number = extractNumber(ocrResult.text());
+        String number = extractNumber(result);
 
         if (number != null)
         {

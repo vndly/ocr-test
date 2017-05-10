@@ -9,7 +9,7 @@ import com.mauriciotogneri.ocrtest.camera.CameraManager;
 /**
  * This class handles all the messaging which comprises the state machine for capture.
  */
-final class CaptureHandler extends Handler
+public class CaptureHandler extends Handler
 {
     private final CaptureActivity activity;
     private final DecodeThread decodeThread;

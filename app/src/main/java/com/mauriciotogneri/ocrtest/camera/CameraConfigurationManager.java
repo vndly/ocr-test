@@ -19,9 +19,8 @@ import java.util.List;
  * <p>
  * The code for this class was adapted from the ZXing project: https://github.com/zxing/zxing
  */
-final class CameraConfigurationManager
+public class CameraConfigurationManager
 {
-
     private static final String TAG = "CameraConfiguration";
     // This is bigger than the size of a small screen, which is still supported. The routine
     // below will still select the default (presumably 320x240) size for these. This prevents
@@ -33,7 +32,7 @@ final class CameraConfigurationManager
     private Point screenResolution;
     private Point cameraResolution;
 
-    CameraConfigurationManager(Context context)
+    public CameraConfigurationManager(Context context)
     {
         this.context = context;
     }
@@ -41,7 +40,7 @@ final class CameraConfigurationManager
     /**
      * Reads, one time, values from the camera that are needed by the app.
      */
-    void initFromCameraParameters(Camera camera)
+    public void initFromCameraParameters(Camera camera)
     {
         Camera.Parameters parameters = camera.getParameters();
         WindowManager manager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
@@ -63,7 +62,7 @@ final class CameraConfigurationManager
         Log.i(TAG, "Camera resolution: " + cameraResolution);
     }
 
-    void setDesiredCameraParameters(Camera camera)
+    public void setDesiredCameraParameters(Camera camera)
     {
         Camera.Parameters parameters = camera.getParameters();
 
@@ -93,12 +92,12 @@ final class CameraConfigurationManager
         camera.setParameters(parameters);
     }
 
-    Point getCameraResolution()
+    public Point getCameraResolution()
     {
         return cameraResolution;
     }
 
-    Point getScreenResolution()
+    public Point getScreenResolution()
     {
         return screenResolution;
     }
@@ -224,5 +223,4 @@ final class CameraConfigurationManager
         Log.i(TAG, "Settable value: " + result);
         return result;
     }
-
 }

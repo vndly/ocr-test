@@ -11,7 +11,6 @@ import java.io.IOException;
 
 public class CameraManager
 {
-    private final Context context;
     private final CameraConfigurationManager configManager;
     private final PreviewCallback previewCallback;
     private Camera camera;
@@ -23,7 +22,6 @@ public class CameraManager
 
     public CameraManager(Context context)
     {
-        this.context = context;
         this.configManager = new CameraConfigurationManager(context);
         this.previewCallback = new PreviewCallback(configManager);
     }

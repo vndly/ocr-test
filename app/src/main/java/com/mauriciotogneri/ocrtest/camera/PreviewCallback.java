@@ -17,7 +17,7 @@ public class PreviewCallback implements Camera.PreviewCallback
         this.configManager = configManager;
     }
 
-    void setHandler(Handler previewHandler, int previewMessage)
+    public void setHandler(Handler previewHandler, int previewMessage)
     {
         this.previewHandler = previewHandler;
         this.previewMessage = previewMessage;
@@ -28,6 +28,7 @@ public class PreviewCallback implements Camera.PreviewCallback
     {
         Point cameraResolution = configManager.getCameraResolution();
         Handler thePreviewHandler = previewHandler;
+
         if (cameraResolution != null && thePreviewHandler != null)
         {
             Message message = thePreviewHandler.obtainMessage(previewMessage, cameraResolution.x,

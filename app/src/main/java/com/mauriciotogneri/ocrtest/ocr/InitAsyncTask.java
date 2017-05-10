@@ -18,7 +18,7 @@ import java.util.zip.ZipInputStream;
  * Installs the language data required for OCR, and initializes the OCR engine using a background
  * thread.
  */
-final class InitAsyncTask extends AsyncTask<String, String, Boolean>
+public class InitAsyncTask extends AsyncTask<String, String, Boolean>
 {
     private final CaptureActivity activity;
     private final TessBaseAPI baseApi;

@@ -21,7 +21,7 @@ import com.mauriciotogneri.ocrtest.camera.CameraManager;
 
 import java.io.File;
 
-public final class CaptureActivity extends AppCompatActivity implements SurfaceHolder.Callback
+public class CaptureActivity extends AppCompatActivity implements SurfaceHolder.Callback
 {
     private CameraManager cameraManager;
     private CaptureHandler handler;

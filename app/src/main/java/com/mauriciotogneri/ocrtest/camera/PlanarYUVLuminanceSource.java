@@ -9,8 +9,6 @@ import android.graphics.Bitmap;
  * <p>
  * It works for any pixel format where the Y channel is planar and appears first, including
  * YCbCr_420_SP and YCbCr_422_SP.
- * <p>
- * The code for this class was adapted from the ZXing project: https://github.com/zxing/zxing
  */
 public final class PlanarYUVLuminanceSource
 {
@@ -18,7 +16,6 @@ public final class PlanarYUVLuminanceSource
     private final int height;
     private final byte[] yuvData;
     private final int dataWidth;
-    private final int dataHeight;
     private final int left;
     private final int top;
 
@@ -40,7 +37,6 @@ public final class PlanarYUVLuminanceSource
 
         this.yuvData = yuvData;
         this.dataWidth = dataWidth;
-        this.dataHeight = dataHeight;
         this.left = left;
         this.top = top;
     }

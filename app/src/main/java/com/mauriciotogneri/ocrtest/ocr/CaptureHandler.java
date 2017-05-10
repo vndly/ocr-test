@@ -9,7 +9,7 @@ import com.mauriciotogneri.ocrtest.camera.CameraManager;
 /**
  * This class handles all the messaging which comprises the state machine for capture.
  */
-final class CaptureActivityHandler extends Handler
+final class CaptureHandler extends Handler
 {
     private final CaptureActivity activity;
     private final DecodeThread decodeThread;
@@ -24,7 +24,7 @@ final class CaptureActivityHandler extends Handler
         DONE
     }
 
-    public CaptureActivityHandler(CaptureActivity activity, CameraManager cameraManager)
+    public CaptureHandler(CaptureActivity activity, CameraManager cameraManager)
     {
         this.activity = activity;
         this.cameraManager = cameraManager;
@@ -45,7 +45,7 @@ final class CaptureActivityHandler extends Handler
                 break;
 
             case R.id.ocr_continuous_decode_succeeded:
-                decodeSucceeded(message.obj.toString());
+                decodeSuccess(message.obj.toString());
                 break;
         }
     }
@@ -60,7 +60,7 @@ final class CaptureActivityHandler extends Handler
         }
     }
 
-    private void decodeSucceeded(String result)
+    private void decodeSuccess(String result)
     {
         resetDecodeState();
 

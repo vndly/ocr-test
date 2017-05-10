@@ -24,7 +24,7 @@ import java.io.File;
 public final class CaptureActivity extends AppCompatActivity implements SurfaceHolder.Callback
 {
     private CameraManager cameraManager;
-    private CaptureActivityHandler handler;
+    private CaptureHandler handler;
     private SurfaceHolder surfaceHolder;
     private TessBaseAPI baseApi;
 
@@ -135,7 +135,7 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
             cameraManager.openDriver(surfaceHolder);
 
             // Creating the handler starts the preview, which can also throw a RuntimeException.
-            handler = new CaptureActivityHandler(this, cameraManager);
+            handler = new CaptureHandler(this, cameraManager);
         }
         catch (Exception ioe)
         {
@@ -161,12 +161,7 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
         if (baseApi == null)
         {
             // initialize the OCR engine
-            File storageDirectory = getStorageDirectory();
-
-            if (storageDirectory != null)
-            {
-                initEngine(storageDirectory, "eng");
-            }
+            initEngine(getExternalFilesDir(Environment.MEDIA_MOUNTED), "eng");
         }
         else
         {
@@ -230,50 +225,6 @@ public final class CaptureActivity extends AppCompatActivity implements SurfaceH
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height)
     {
-    }
-
-    /**
-     * Finds the proper location on the SD card where we can save files.
-     */
-    private File getStorageDirectory()
-    {
-        String state = null;
-
-        try
-        {
-            state = Environment.getExternalStorageState();
-        }
-        catch (RuntimeException e)
-        {
-            showErrorMessage("Error", "Required external storage (such as an SD card) is unavailable.");
-        }
-
-        if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState()))
-        {
-            try
-            {
-                return getExternalFilesDir(Environment.MEDIA_MOUNTED);
-            }
-            catch (Exception e)
-            {
-                // We get an error here if the SD card is visible, but full
-                showErrorMessage("Error", "Required external storage (such as an SD card) is full or unavailable.");
-            }
-
-        }
-        else if (Environment.MEDIA_MOUNTED_READ_ONLY.equals(state))
-        {
-            // We can only read the media
-            showErrorMessage("Error", "Required external storage (such as an SD card) is unavailable for data storage.");
-        }
-        else
-        {
-            // Something else is wrong. It may be one of many other states, but all we need
-            // to know is we can neither read nor write
-            showErrorMessage("Error", "Required external storage (such as an SD card) is unavailable or corrupted.");
-        }
-
-        return null;
     }
 
     /**

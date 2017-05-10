@@ -164,8 +164,7 @@ public class CameraConfigurationManager
             int maybeFlippedHeight = isCandidatePortrait ? realWidth : realHeight;
             if (maybeFlippedWidth == screenResolution.x && maybeFlippedHeight == screenResolution.y)
             {
-                Point exactPoint = new Point(realWidth, realHeight);
-                return exactPoint;
+                return new Point(realWidth, realHeight);
             }
             float aspectRatio = (float) maybeFlippedWidth / (float) maybeFlippedHeight;
             float newDiff = Math.abs(aspectRatio - screenAspectRatio);

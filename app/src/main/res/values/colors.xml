@@ -5,14 +5,4 @@
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
 
-    <color name="result_minor_text">#ffc0c0c0</color>
-    <color name="result_text">#ffffffff</color>
-    <color name="result_view">#b0000000</color>
-    <color name="status_text">#ffffffff</color>
-    <color name="status_top_text_background">#ffffffff</color>
-    <color name="translation_text">#00ccff</color>
-    <color name="viewfinder_corners">#ffffffff</color>
-    <color name="viewfinder_frame">#ffd6d6d6</color>
-    <color name="viewfinder_mask">#60000000</color>
-
 </resources>

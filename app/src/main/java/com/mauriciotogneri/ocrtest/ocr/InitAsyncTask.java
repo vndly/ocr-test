@@ -8,7 +8,6 @@ import com.mauriciotogneri.ocrtest.R;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.zip.ZipEntry;
@@ -158,7 +157,6 @@ public class InitAsyncTask extends AsyncTask<String, String, Boolean>
      * @param sourceFilename File in assets to install
      * @param modelRoot      Directory on SD card to install the file to
      * @return True if installZipFromAssets returns true
-     * @throws IOException
      */
     private boolean installFromAssets(String sourceFilename, File modelRoot) throws IOException
     {
@@ -189,9 +187,6 @@ public class InitAsyncTask extends AsyncTask<String, String, Boolean>
      *
      * @param sourceFilename Name of the file in assets
      * @param destinationDir Directory to save the destination file in
-     * @return
-     * @throws IOException
-     * @throws FileNotFoundException
      */
     private boolean installZipFromAssets(String sourceFilename, File destinationDir) throws IOException
     {
@@ -252,8 +247,7 @@ public class InitAsyncTask extends AsyncTask<String, String, Boolean>
     /**
      * Update the dialog box with the latest incremental progress.
      *
-     * @param message [0] Text to be displayed
-     * @param message [1] Numeric value for the progress
+     * @param message [0] Text to be displayed - [1] Numeric value for the progress
      */
     @Override
     protected void onProgressUpdate(String... message)

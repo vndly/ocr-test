@@ -1,6 +1,7 @@
 package com.mauriciotogneri.ocrtest.ocr;
 
 import android.graphics.Bitmap;
+import android.graphics.Rect;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -9,6 +10,7 @@ import com.googlecode.leptonica.android.Pixa;
 import com.googlecode.leptonica.android.ReadFile;
 import com.googlecode.tesseract.android.TessBaseAPI;
 import com.mauriciotogneri.ocrtest.R;
+import com.mauriciotogneri.ocrtest.camera.CameraManager;
 import com.mauriciotogneri.ocrtest.camera.PlanarYUVLuminanceSource;
 
 /**
@@ -18,6 +20,7 @@ public class DecodeHandler extends Handler
 {
     private final CaptureActivity activity;
     private final TessBaseAPI baseApi;
+    private final CameraManager cameraManager;
     private boolean running = true;
     private boolean isDecodePending = false;
 
@@ -25,6 +28,7 @@ public class DecodeHandler extends Handler
     {
         this.activity = activity;
         this.baseApi = activity.getBaseApi();
+        this.cameraManager = activity.getCameraManager();
     }
 
     @Override
@@ -76,7 +80,7 @@ public class DecodeHandler extends Handler
 
     private void continuousDecode(byte[] data, int width, int height)
     {
-        PlanarYUVLuminanceSource source = activity.getCameraManager().buildLuminanceSource(data, width, height);
+        PlanarYUVLuminanceSource source = buildLuminanceSource(data, width, height, cameraManager.getFramingRectInPreview());
 
         if (source == null)
         {
@@ -185,5 +189,25 @@ public class DecodeHandler extends Handler
                 Message.obtain(handler, what).sendToTarget();
             }
         }
+    }
+
+    /**
+     * A factory method to build the appropriate LuminanceSource object based on the format
+     * of the preview buffers, as described by Camera.Parameters.
+     *
+     * @param data   A preview frame.
+     * @param width  The width of the image.
+     * @param height The height of the image.
+     * @return A PlanarYUVLuminanceSource instance.
+     */
+    private PlanarYUVLuminanceSource buildLuminanceSource(byte[] data, int width, int height, Rect rect)
+    {
+        if (rect == null)
+        {
+            return null;
+        }
+
+        // Go ahead and assume it's YUV rather than die.
+        return new PlanarYUVLuminanceSource(data, width, height, rect.left, rect.top, rect.width(), rect.height());
     }
 }

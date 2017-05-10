@@ -96,12 +96,12 @@ public class CameraConfigurationManager
         return screenResolution;
     }
 
-    private static void initializeTorch(Camera.Parameters parameters)
+    private void initializeTorch(Camera.Parameters parameters)
     {
         doSetTorch(parameters, false);
     }
 
-    private static void doSetTorch(Camera.Parameters parameters, boolean newSetting)
+    private void doSetTorch(Camera.Parameters parameters, boolean newSetting)
     {
         String flashMode;
 
@@ -184,7 +184,7 @@ public class CameraConfigurationManager
         return bestSize;
     }
 
-    private static String findSettableValue(Collection<String> supportedValues, String... desiredValues)
+    private String findSettableValue(Collection<String> supportedValues, String... desiredValues)
     {
         String result = null;
 

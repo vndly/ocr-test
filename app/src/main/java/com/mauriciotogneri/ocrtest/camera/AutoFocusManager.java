@@ -1,19 +1,16 @@
 package com.mauriciotogneri.ocrtest.camera;
 
 import android.hardware.Camera;
-import android.util.Log;
 
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class AutoFocusManager implements Camera.AutoFocusCallback
 {
-    private static final String TAG = AutoFocusManager.class.getSimpleName();
     private static final long AUTO_FOCUS_INTERVAL_MS = 3500L;
 
     private boolean active;
     private boolean manual;
-    private final boolean useAutoFocus;
     private final Camera camera;
     private final Timer timer;
     private TimerTask outstandingTask;
@@ -21,11 +18,8 @@ public class AutoFocusManager implements Camera.AutoFocusCallback
     public AutoFocusManager(Camera camera)
     {
         this.camera = camera;
-        timer = new Timer(true);
-        String currentFocusMode = camera.getParameters().getFocusMode();
-        useAutoFocus = true;
-        Log.i(TAG, "Current focus mode '" + currentFocusMode + "'; use auto focus? " + useAutoFocus);
-        manual = false;
+        this.timer = new Timer(true);
+        this.manual = false;
         checkAndStart();
     }
 
@@ -49,11 +43,8 @@ public class AutoFocusManager implements Camera.AutoFocusCallback
 
     public void checkAndStart()
     {
-        if (useAutoFocus)
-        {
-            active = true;
-            start();
-        }
+        active = true;
+        start();
     }
 
     public synchronized void start()
@@ -62,24 +53,22 @@ public class AutoFocusManager implements Camera.AutoFocusCallback
         {
             camera.autoFocus(this);
         }
-        catch (RuntimeException re)
+        catch (Exception re)
         {
-            // Have heard RuntimeException reported in Android 4.0.x+; continue?
-            Log.w(TAG, "Unexpected exception while focusing", re);
+            // ignore
         }
     }
 
     public synchronized void stop()
     {
-        if (useAutoFocus)
-        {
-            camera.cancelAutoFocus();
-        }
+        camera.cancelAutoFocus();
+
         if (outstandingTask != null)
         {
             outstandingTask.cancel();
             outstandingTask = null;
         }
+
         active = false;
         manual = false;
     }

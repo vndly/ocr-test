@@ -131,10 +131,10 @@ public class CaptureActivity extends AppCompatActivity implements SurfaceHolder.
         }
         try
         {
-            // Open and initialize the camera
+            // open and initialize the camera
             cameraManager.openDriver(surfaceHolder);
 
-            // Creating the handler starts the preview, which can also throw a RuntimeException.
+            // creating the handler starts the preview, which can also throw a RuntimeException.
             handler = new CaptureHandler(this, cameraManager);
         }
         catch (Exception ioe)
@@ -185,7 +185,7 @@ public class CaptureActivity extends AppCompatActivity implements SurfaceHolder.
             }
         }
 
-        // Stop using the camera, to avoid conflicting with other camera-based apps
+        // stop using the camera, to avoid conflicting with other camera-based apps
         cameraManager.closeDriver();
 
         if (!hasSurface)

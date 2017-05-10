@@ -175,7 +175,7 @@ public class InitAsyncTask extends AsyncTask<String, String, Boolean>
                 throw new IllegalArgumentException("Extension " + extension + " is unsupported.");
             }
         }
-        catch (FileNotFoundException e)
+        catch (Exception e)
         {
             // ignore
         }

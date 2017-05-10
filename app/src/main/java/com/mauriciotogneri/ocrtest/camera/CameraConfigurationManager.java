@@ -3,7 +3,6 @@ package com.mauriciotogneri.ocrtest.camera;
 import android.content.Context;
 import android.graphics.Point;
 import android.hardware.Camera;
-import android.util.Log;
 import android.view.Display;
 import android.view.WindowManager;
 
@@ -21,7 +20,6 @@ import java.util.List;
  */
 public class CameraConfigurationManager
 {
-    private static final String TAG = "CameraConfiguration";
     // This is bigger than the size of a small screen, which is still supported. The routine
     // below will still select the default (presumably 320x240) size for these. This prevents
     // accidental selection of very low resolution on some devices.
@@ -47,19 +45,18 @@ public class CameraConfigurationManager
         Display display = manager.getDefaultDisplay();
         int width = display.getWidth();
         int height = display.getHeight();
+
         // We're landscape-only, and have apparently seen issues with display thinking it's portrait
         // when waking from sleep. If it's not landscape, assume it's mistaken and reverse them:
         if (width < height)
         {
-            Log.i(TAG, "Display reports portrait orientation; assuming this is incorrect");
             int temp = width;
             width = height;
             height = temp;
         }
+
         screenResolution = new Point(width, height);
-        Log.i(TAG, "Screen resolution: " + screenResolution);
         cameraResolution = findBestPreviewSizeValue(parameters, screenResolution);
-        Log.i(TAG, "Camera resolution: " + cameraResolution);
     }
 
     public void setDesiredCameraParameters(Camera camera)
@@ -68,21 +65,18 @@ public class CameraConfigurationManager
 
         if (parameters == null)
         {
-            Log.w(TAG, "Device error: no camera parameters are available. Proceeding without configuration.");
             return;
         }
 
         initializeTorch(parameters);
-        String focusMode = findSettableValue(parameters.getSupportedFocusModes(),
-                                             Camera.Parameters.FOCUS_MODE_AUTO);
+        String focusMode = findSettableValue(parameters.getSupportedFocusModes(), Camera.Parameters.FOCUS_MODE_AUTO);
 
         // Maybe selected auto-focus but not available, so fall through here:
         if (focusMode == null)
         {
-            focusMode = findSettableValue(parameters.getSupportedFocusModes(),
-                                          Camera.Parameters.FOCUS_MODE_MACRO,
-                                          "edof"); // Camera.Parameters.FOCUS_MODE_EDOF in 2.2+
+            focusMode = findSettableValue(parameters.getSupportedFocusModes(), Camera.Parameters.FOCUS_MODE_MACRO, "edof"); // Camera.Parameters.FOCUS_MODE_EDOF in 2.2+
         }
+
         if (focusMode != null)
         {
             parameters.setFocusMode(focusMode);
@@ -110,6 +104,7 @@ public class CameraConfigurationManager
     private static void doSetTorch(Camera.Parameters parameters, boolean newSetting)
     {
         String flashMode;
+
         if (newSetting)
         {
             flashMode = findSettableValue(parameters.getSupportedFlashModes(),
@@ -121,6 +116,7 @@ public class CameraConfigurationManager
             flashMode = findSettableValue(parameters.getSupportedFlashModes(),
                                           Camera.Parameters.FLASH_MODE_OFF);
         }
+
         if (flashMode != null)
         {
             parameters.setFlashMode(flashMode);
@@ -129,9 +125,8 @@ public class CameraConfigurationManager
 
     private Point findBestPreviewSizeValue(Camera.Parameters parameters, Point screenResolution)
     {
-
         // Sort by size, descending
-        List<Camera.Size> supportedPreviewSizes = new ArrayList<Camera.Size>(parameters.getSupportedPreviewSizes());
+        List<Camera.Size> supportedPreviewSizes = new ArrayList<>(parameters.getSupportedPreviewSizes());
         Collections.sort(supportedPreviewSizes, new Comparator<Camera.Size>()
         {
             @Override
@@ -151,21 +146,10 @@ public class CameraConfigurationManager
             }
         });
 
-        if (Log.isLoggable(TAG, Log.INFO))
-        {
-            StringBuilder previewSizesString = new StringBuilder();
-            for (Camera.Size supportedPreviewSize : supportedPreviewSizes)
-            {
-                previewSizesString.append(supportedPreviewSize.width).append('x')
-                        .append(supportedPreviewSize.height).append(' ');
-            }
-            Log.i(TAG, "Supported preview sizes: " + previewSizesString);
-        }
-
         Point bestSize = null;
         float screenAspectRatio = (float) screenResolution.x / (float) screenResolution.y;
-
         float diff = Float.POSITIVE_INFINITY;
+
         for (Camera.Size supportedPreviewSize : supportedPreviewSizes)
         {
             int realWidth = supportedPreviewSize.width;
@@ -181,7 +165,6 @@ public class CameraConfigurationManager
             if (maybeFlippedWidth == screenResolution.x && maybeFlippedHeight == screenResolution.y)
             {
                 Point exactPoint = new Point(realWidth, realHeight);
-                Log.i(TAG, "Found preview size exactly matching screen size: " + exactPoint);
                 return exactPoint;
             }
             float aspectRatio = (float) maybeFlippedWidth / (float) maybeFlippedHeight;
@@ -197,18 +180,15 @@ public class CameraConfigurationManager
         {
             Camera.Size defaultSize = parameters.getPreviewSize();
             bestSize = new Point(defaultSize.width, defaultSize.height);
-            Log.i(TAG, "No suitable preview sizes, using default: " + bestSize);
         }
 
-        Log.i(TAG, "Found best approximate preview size: " + bestSize);
         return bestSize;
     }
 
-    private static String findSettableValue(Collection<String> supportedValues,
-                                            String... desiredValues)
+    private static String findSettableValue(Collection<String> supportedValues, String... desiredValues)
     {
-        Log.i(TAG, "Supported values: " + supportedValues);
         String result = null;
+
         if (supportedValues != null)
         {
             for (String desiredValue : desiredValues)
@@ -220,7 +200,7 @@ public class CameraConfigurationManager
                 }
             }
         }
-        Log.i(TAG, "Settable value: " + result);
+
         return result;
     }
 }

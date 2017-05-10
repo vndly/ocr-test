@@ -68,7 +68,7 @@ public class CameraConfigurationManager
             return;
         }
 
-        initializeTorch(parameters);
+        enableFlash(parameters, false);
         String focusMode = findSettableValue(parameters.getSupportedFocusModes(), Camera.Parameters.FOCUS_MODE_AUTO);
 
         // Maybe selected auto-focus but not available, so fall through here:
@@ -96,16 +96,11 @@ public class CameraConfigurationManager
         return screenResolution;
     }
 
-    private void initializeTorch(Camera.Parameters parameters)
-    {
-        doSetTorch(parameters, false);
-    }
-
-    private void doSetTorch(Camera.Parameters parameters, boolean newSetting)
+    public void enableFlash(Camera.Parameters parameters, boolean flashOn)
     {
         String flashMode;
 
-        if (newSetting)
+        if (flashOn)
         {
             flashMode = findSettableValue(parameters.getSupportedFlashModes(),
                                           Camera.Parameters.FLASH_MODE_TORCH,

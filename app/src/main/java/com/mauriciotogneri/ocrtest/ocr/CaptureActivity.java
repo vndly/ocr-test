@@ -12,6 +12,7 @@ import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 
@@ -47,6 +48,18 @@ public class CaptureActivity extends AppCompatActivity implements SurfaceHolder.
         isEngineReady = false;
 
         cameraManager = new CameraManager(getApplication());
+
+        findViewById(R.id.flash).setOnClickListener(new View.OnClickListener()
+        {
+            boolean flash = false;
+
+            @Override
+            public void onClick(View v)
+            {
+                flash = !flash;
+                cameraManager.enableFlash(flash);
+            }
+        });
     }
 
     private void initEngine(File storageRoot, String languageCode)

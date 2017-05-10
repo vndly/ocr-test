@@ -26,6 +26,13 @@ public class CameraManager
         this.previewCallback = new PreviewCallback(configManager);
     }
 
+    public void enableFlash(boolean enable)
+    {
+        Camera.Parameters parameters = camera.getParameters();
+        configManager.enableFlash(parameters, enable);
+        camera.setParameters(parameters);
+    }
+
     public synchronized void openDriver(SurfaceHolder holder) throws IOException
     {
         Camera theCamera = camera;
